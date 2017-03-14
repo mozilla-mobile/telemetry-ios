@@ -11,6 +11,11 @@
 		D07FCCC51E7748F500D5DE91 /* Telemetry.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0E1781F1E773B7F00CD2264 /* Telemetry.framework */; };
 		D07FCCC81E77491700D5DE91 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D07FCCC71E77491700D5DE91 /* SwiftyJSON.framework */; };
 		D07FCCD41E774B0C00D5DE91 /* OHHTTPStubs.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D07FCCC31E7748D600D5DE91 /* OHHTTPStubs.framework */; };
+		D0A4EE8B1E78672B00952795 /* Telemetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A4EE8A1E78672B00952795 /* Telemetry.swift */; };
+		D0A4EE8D1E7868B700952795 /* TelemetryStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A4EE8C1E7868B700952795 /* TelemetryStorage.swift */; };
+		D0A4EE8F1E787AF400952795 /* TelemetryPings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A4EE8E1E787AF400952795 /* TelemetryPings.swift */; };
+		D0A4EE911E787E5800952795 /* TelemetryMeasurements.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A4EE901E787E5800952795 /* TelemetryMeasurements.swift */; };
+		D0A4EE931E7892A600952795 /* TelemetryEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A4EE921E7892A600952795 /* TelemetryEvent.swift */; };
 		D0E178291E773B7F00CD2264 /* Telemetry.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0E1781F1E773B7F00CD2264 /* Telemetry.framework */; };
 		D0E1782E1E773B7F00CD2264 /* TelemetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E1782D1E773B7F00CD2264 /* TelemetryTests.swift */; };
 		D0E178301E773B7F00CD2264 /* Telemetry.h in Headers */ = {isa = PBXBuildFile; fileRef = D0E178221E773B7F00CD2264 /* Telemetry.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -41,6 +46,11 @@
 /* Begin PBXFileReference section */
 		D07FCCC31E7748D600D5DE91 /* OHHTTPStubs.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OHHTTPStubs.framework; path = Carthage/Build/iOS/OHHTTPStubs.framework; sourceTree = "<group>"; };
 		D07FCCC71E77491700D5DE91 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
+		D0A4EE8A1E78672B00952795 /* Telemetry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Telemetry.swift; sourceTree = "<group>"; };
+		D0A4EE8C1E7868B700952795 /* TelemetryStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryStorage.swift; sourceTree = "<group>"; };
+		D0A4EE8E1E787AF400952795 /* TelemetryPings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryPings.swift; sourceTree = "<group>"; };
+		D0A4EE901E787E5800952795 /* TelemetryMeasurements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryMeasurements.swift; sourceTree = "<group>"; };
+		D0A4EE921E7892A600952795 /* TelemetryEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryEvent.swift; sourceTree = "<group>"; };
 		D0E1781F1E773B7F00CD2264 /* Telemetry.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Telemetry.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0E178221E773B7F00CD2264 /* Telemetry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Telemetry.h; sourceTree = "<group>"; };
 		D0E178231E773B7F00CD2264 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -121,6 +131,11 @@
 			children = (
 				D0E178221E773B7F00CD2264 /* Telemetry.h */,
 				D0E178231E773B7F00CD2264 /* Info.plist */,
+				D0A4EE8A1E78672B00952795 /* Telemetry.swift */,
+				D0A4EE8C1E7868B700952795 /* TelemetryStorage.swift */,
+				D0A4EE8E1E787AF400952795 /* TelemetryPings.swift */,
+				D0A4EE901E787E5800952795 /* TelemetryMeasurements.swift */,
+				D0A4EE921E7892A600952795 /* TelemetryEvent.swift */,
 			);
 			path = Telemetry;
 			sourceTree = "<group>";
@@ -229,6 +244,7 @@
 				TargetAttributes = {
 					D0E1781E1E773B7F00CD2264 = {
 						CreatedOnToolsVersion = 8.2.1;
+						LastSwiftMigration = 0820;
 						ProvisioningStyle = Automatic;
 					};
 					D0E178271E773B7F00CD2264 = {
@@ -341,6 +357,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D0A4EE8F1E787AF400952795 /* TelemetryPings.swift in Sources */,
+				D0A4EE8B1E78672B00952795 /* Telemetry.swift in Sources */,
+				D0A4EE911E787E5800952795 /* TelemetryMeasurements.swift in Sources */,
+				D0A4EE8D1E7868B700952795 /* TelemetryStorage.swift in Sources */,
+				D0A4EE931E7892A600952795 /* TelemetryEvent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -498,6 +519,7 @@
 		D0E178341E773B7F00CD2264 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -513,6 +535,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.mozilla.Telemetry;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
@@ -520,6 +543,7 @@
 		D0E178351E773B7F00CD2264 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -542,6 +566,7 @@
 		D0E178371E773B7F00CD2264 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
@@ -557,6 +582,7 @@
 		D0E178381E773B7F00CD2264 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
