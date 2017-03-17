@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D02D65AF1E7C6AB0009DBC23 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D07FCCC71E77491700D5DE91 /* SwiftyJSON.framework */; };
 		D07FCCC41E7748D600D5DE91 /* OHHTTPStubs.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D07FCCC31E7748D600D5DE91 /* OHHTTPStubs.framework */; };
 		D07FCCC51E7748F500D5DE91 /* Telemetry.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0E1781F1E773B7F00CD2264 /* Telemetry.framework */; };
 		D07FCCC81E77491700D5DE91 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D07FCCC71E77491700D5DE91 /* SwiftyJSON.framework */; };
@@ -81,6 +82,7 @@
 			files = (
 				D0E178291E773B7F00CD2264 /* Telemetry.framework in Frameworks */,
 				D07FCCC41E7748D600D5DE91 /* OHHTTPStubs.framework in Frameworks */,
+				D02D65AF1E7C6AB0009DBC23 /* SwiftyJSON.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -342,6 +344,7 @@
 			);
 			inputPaths = (
 				"$(SRCROOT)/Carthage/Build/iOS/OHHTTPStubs.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
 			);
 			name = "Copy Carthage Dependencies";
 			outputPaths = (
