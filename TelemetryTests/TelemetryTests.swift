@@ -57,7 +57,7 @@ class TelemetryTests: XCTestCase, TelemetryDelegate {
         }
     }
     
-    func didUpload(result: Data?, error: Error?) {
+    func didFinishUpload(result: Data?, error: Error?) {
         didUploadResult = result
         didUploadError = error
         didUploadExpectation?.fulfill()

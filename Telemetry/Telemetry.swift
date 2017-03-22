@@ -10,7 +10,7 @@ import Foundation
 import SwiftyJSON
 
 public protocol TelemetryDelegate {
-    func didUpload(result: Data?, error: Error?)
+    func didFinishUpload(result: Data?, error: Error?)
 }
 
 public class Telemetry {
@@ -47,16 +47,23 @@ public class Telemetry {
     }
     
     private func upload() {
-        let task = URLSession.shared.dataTask(with: URLRequest(url: URL(string: "https://incoming.telemetry.mozilla.org")!)) { data, response, error in
-            let json = JSON(data ?? Data())
-            
-            print("data", json)
-            print("response", response ?? "(none)")
-            print("error", error ?? "(none)")
-            
-            self.delegate?.didUpload(result: data, error: error)
-        }
+        let client = TelemetryClient()
+        client.delegate = self
+        client.send(request: URLRequest(url: URL(string: "https://incoming.telemetry.mozilla.org")!))
+    }
+}
+
+extension Telemetry: TelemetryClientDelegate {
+    public func telemetryClient(_ client: TelemetryClient, didComplete request: URLRequest, response: URLResponse?, data: Data?) {
+        let json = JSON(data ?? Data())
         
-        task.resume()
+        print("data", json)
+        print("response", response ?? "(none)")
+        
+        self.delegate?.didFinishUpload(result: data, error: nil)
+    }
+    
+    public func telemetryClient(_ client: TelemetryClient, didFail request: URLRequest, response: URLResponse?, error: Error?) {
+        self.delegate?.didFinishUpload(result: nil, error: error)
     }
 }
