@@ -9,15 +9,13 @@
 import Foundation
 import SwiftyJSON
 
-public protocol TelemetryDelegate {
-    func didFinishUpload(result: Data?, error: Error?)
-}
-
 public class Telemetry {
     private let storage: TelemetryStorage
     private let corePing: TelemetryCorePing
-
-    public var delegate: TelemetryDelegate?
+    
+    static public let `default`: Telemetry = {
+        return Telemetry(storageName: "MozTelemetry")
+    }()
     
     public init(storageName: String) {
         self.storage = TelemetryStorage(name: storageName)
@@ -32,9 +30,9 @@ public class Telemetry {
         
     }
     
-    public func scheduleUpload() {
+    public func scheduleUpload(completionHandler: @escaping (Data?, Error?)->Void = {_,_ in }) {
         DispatchQueue.main.async {
-            self.upload()
+            self.upload(completionHandler: completionHandler)
         }
     }
     
@@ -46,24 +44,15 @@ public class Telemetry {
         self.corePing.endSession()
     }
     
-    private func upload() {
+    private func upload(completionHandler: @escaping (Data?, Error?)->Void = {_,_ in }) {
         let client = TelemetryClient()
-        client.delegate = self
-        client.send(request: URLRequest(url: URL(string: "https://incoming.telemetry.mozilla.org")!))
-    }
-}
+        client.send(request: URLRequest(url: URL(string: "https://incoming.telemetry.mozilla.org")!)) { (response, data, error) in
+            if error != nil {
+                completionHandler(nil, error)
+                return
+            }
 
-extension Telemetry: TelemetryClientDelegate {
-    public func telemetryClient(_ client: TelemetryClient, didComplete request: URLRequest, response: URLResponse?, data: Data?) {
-        let json = JSON(data ?? Data())
-        
-        print("data", json)
-        print("response", response ?? "(none)")
-        
-        self.delegate?.didFinishUpload(result: data, error: nil)
-    }
-    
-    public func telemetryClient(_ client: TelemetryClient, didFail request: URLRequest, response: URLResponse?, error: Error?) {
-        self.delegate?.didFinishUpload(result: nil, error: error)
+            completionHandler(data, nil)
+        }
     }
 }

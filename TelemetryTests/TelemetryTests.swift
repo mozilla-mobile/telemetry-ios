@@ -11,12 +11,7 @@ import OHHTTPStubs
 import SwiftyJSON
 @testable import Telemetry
 
-class TelemetryTests: XCTestCase, TelemetryDelegate {
-    
-    var didUploadExpectation: XCTestExpectation?
-    var didUploadResult: Data?
-    var didUploadError: Error?
-    
+class TelemetryTests: XCTestCase {
     override func setUp() {
         super.setUp()
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -31,22 +26,22 @@ class TelemetryTests: XCTestCase, TelemetryDelegate {
     }
     
     func testTelemetryUpload() {
-        didUploadExpectation = expectation(description: "Completed upload")
+        let callback = expectation(description: "Completed upload")
 
-        let telemetry = Telemetry(storageName: "TelemetryTests")
-        telemetry.delegate = self
-        telemetry.scheduleUpload()
+        Telemetry.default.scheduleUpload { (data, error) in
+            let json = JSON(data ?? Data())
+            
+            XCTAssert(error == nil, "Received didUpload(...) callback without an error")
+            XCTAssert(json["foo"] == "bar", "Received didUpload(...) callback with expected JSON result")
+            
+            callback.fulfill()
+        }
         
         waitForExpectations(timeout: 60.0) { error in
             if error != nil {
                 print("Test timed out waiting for upload: %@", error!)
                 return
             }
-    
-            let json = JSON(self.didUploadResult ?? Data())
-            
-            XCTAssert(self.didUploadError == nil, "Received didUpload(...) callback without an error")
-            XCTAssert(json["foo"] == "bar", "Received didUpload(...) callback with expected JSON result")
         }
     }
     
@@ -56,11 +51,4 @@ class TelemetryTests: XCTestCase, TelemetryDelegate {
             // Put the code you want to measure the time of here.
         }
     }
-    
-    func didFinishUpload(result: Data?, error: Error?) {
-        didUploadResult = result
-        didUploadError = error
-        didUploadExpectation?.fulfill()
-    }
-    
 }
