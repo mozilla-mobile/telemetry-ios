@@ -183,6 +183,6 @@ class TimezoneOffsetMeasurement: StaticTelemetryMeasurement {
 
 class VersionMeasurement: StaticTelemetryMeasurement {
     init() {
-        super.init(name: "v", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String)
+        super.init(name: "v", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")
     }
 }

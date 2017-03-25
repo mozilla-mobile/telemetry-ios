@@ -46,7 +46,8 @@ public class Telemetry {
     
     private func upload(completionHandler: @escaping (Data?, Error?)->Void = {_,_ in }) {
         let client = TelemetryClient()
-        client.send(request: URLRequest(url: URL(string: "https://incoming.telemetry.mozilla.org")!)) { (response, data, error) in
+        guard let url = URL(string: "https://incoming.telemetry.mozilla.org") else { completionHandler(nil, nil) ; return }
+        client.send(request: URLRequest(url: url)) { (response, data, error) in
             if error != nil {
                 completionHandler(nil, error)
                 return
