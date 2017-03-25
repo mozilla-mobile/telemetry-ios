@@ -47,9 +47,9 @@ extension TelemetryClient: URLSessionDataDelegate {
     }
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        if error != nil {
-            self.handler(self.response, nil, error)
-        }
+        guard let error = error else { return }
+
+        self.handler(self.response, nil, error)
     }
     
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
