@@ -8,11 +8,11 @@
 
 import Foundation
 
-class TelemetryStorage {
+public class TelemetryStorage {
     private let plistFile: URL
     private let dict: NSMutableDictionary
     
-    init(name: String) {
+    public init(name: String) {
         self.plistFile = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent("\(name).plist")
         
         if !FileManager.default.fileExists(atPath: self.plistFile.path) {
@@ -29,7 +29,7 @@ class TelemetryStorage {
     }
     
     func store(ping: TelemetryPing) {
-        self.dict.setObject(ping.flushMeasurements(), forKey: NSDate().description as NSCopying)
+        self.dict.setObject(ping.measurements, forKey: NSDate().description as NSCopying)
         print("Attempting to store TelemetryPing to plist...", self.dict)
         
         if self.dict.write(to: self.plistFile, atomically: true) {

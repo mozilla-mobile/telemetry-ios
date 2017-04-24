@@ -8,7 +8,7 @@
 
 import UIKit
 
-class TelemetryMeasurement {
+public class TelemetryMeasurement {
     let name: String
 
     init(name: String) {
@@ -20,7 +20,7 @@ class TelemetryMeasurement {
     }
 }
 
-class StaticTelemetryMeasurement: TelemetryMeasurement {
+public class StaticTelemetryMeasurement: TelemetryMeasurement {
     private let value: Any
 
     init(name: String, value: Any) {
@@ -33,7 +33,7 @@ class StaticTelemetryMeasurement: TelemetryMeasurement {
     }
 }
 
-class ArchitectureMeasurement: StaticTelemetryMeasurement {
+public class ArchitectureMeasurement: StaticTelemetryMeasurement {
     init() {
         #if arch(i386)
             super.init(name: "arch", value: "i386")
@@ -49,7 +49,7 @@ class ArchitectureMeasurement: StaticTelemetryMeasurement {
     }
 }
 
-class CreatedMeasurement: StaticTelemetryMeasurement {
+public class CreatedMeasurement: StaticTelemetryMeasurement {
     init() {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
@@ -57,64 +57,127 @@ class CreatedMeasurement: StaticTelemetryMeasurement {
     }
 }
 
-class DefaultSearchMeasurement: StaticTelemetryMeasurement {
-    init(defaultSearch: String) {
-        super.init(name: "defaultSearch", value: defaultSearch)
+public class DefaultSearchMeasurement: TelemetryMeasurement {
+    private var searchEngine: String
+
+    init() {
+        self.searchEngine = "unknown"
+
+        super.init(name: "defaultSearch")
+    }
+    
+    override func flush() -> Any? {
+        return searchEngine
+    }
+    
+    public func change(searchEngine: String) {
+        self.searchEngine = searchEngine
     }
 }
 
-class DeviceMeasurement: StaticTelemetryMeasurement {
+public class DeviceMeasurement: StaticTelemetryMeasurement {
     init() {
         super.init(name: "device", value: UIDevice.current.model)
     }
 }
 
-class DistributionMeasurement: StaticTelemetryMeasurement {
+public class DistributionMeasurement: StaticTelemetryMeasurement {
     init(distributionId: String) {
         super.init(name: "distributionId", value: distributionId)
     }
 }
 
-class ExperimentMeasurement: StaticTelemetryMeasurement {
+public class EventsMeasurement: TelemetryMeasurement {
+    private let configuration: TelemetryConfiguration
+    
+    private var events: [TelemetryEvent]
+    
+    public var numberOfEvents: Int {
+        get {
+            return events.count
+        }
+    }
+    
+    init(configuration: TelemetryConfiguration) {
+        self.configuration = configuration
+        
+        self.events = []
+        
+        super.init(name: "events")
+    }
+    
+    public func add(event: TelemetryEvent) {
+        events.append(event)
+
+        // XXX: TODO - Persist to disk
+    }
+    
+    override func flush() -> Any? {
+        // XXX: TODO
+        return nil
+    }
+}
+
+public class ExperimentMeasurement: StaticTelemetryMeasurement {
     init(experiments: [String]) {
         super.init(name: "experiments", value: experiments)
     }
 }
 
-class LocaleMeasurement: StaticTelemetryMeasurement {
+public class LocaleMeasurement: StaticTelemetryMeasurement {
     init() {
         super.init(name: "locale", value: "\(NSLocale.current.languageCode!)-\(NSLocale.current.regionCode!)")
     }
 }
 
-class OperatingSystemMeasurement: StaticTelemetryMeasurement {
+public class OperatingSystemMeasurement: StaticTelemetryMeasurement {
     init() {
         super.init(name: "os", value: UIDevice.current.systemName)
     }
 }
 
-class OperatingSystemVersionMeasurement: StaticTelemetryMeasurement {
+public class OperatingSystemVersionMeasurement: StaticTelemetryMeasurement {
     init() {
         super.init(name: "osversion", value: UIDevice.current.systemVersion)
     }
 }
 
-class ProfileDateMeasurement: StaticTelemetryMeasurement {
-    init(profileDate: UIntMax) {
-        super.init(name: "profileDate", value: profileDate)
+public class ProfileDateMeasurement: TelemetryMeasurement {
+    init() {
+        super.init(name: "profileDate")
+    }
+    
+    override func flush() -> Any? {
+        // XXX: TODO
+        return nil
     }
 }
 
-class SearchMeasurement: StaticTelemetryMeasurement {
-    init(searches: Dictionary<String, UIntMax>) {
-        super.init(name: "searches", value: searches)
+public class SearchesMeasurement: TelemetryMeasurement {
+    init() {
+        super.init(name: "searches")
+    }
+    
+    override func flush() -> Any? {
+        // XXX: TODO
+        return nil
+    }
+    
+    public func search(location: String, searchEngine: String) {
+        // XXX: TODO
     }
 }
 
-class SequenceMeasurement: TelemetryMeasurement {
+public class SequenceMeasurement: TelemetryMeasurement {
+    private let configuration: TelemetryConfiguration
+    private let pingType: String
+
     private var sequence: UIntMax
+    
+    init(configuration: TelemetryConfiguration, pingType: String) {
+        self.configuration = configuration
+        self.pingType = pingType
 
-    init(pingType: String) {
         // TODO: Read last sequence from storage
         self.sequence = 0
 
@@ -129,59 +192,92 @@ class SequenceMeasurement: TelemetryMeasurement {
     }
 }
 
-class SessionCountMeasurement: TelemetryMeasurement {
+public class SessionCountMeasurement: TelemetryMeasurement {
     private var count: UIntMax
     
     init() {
-        // TODO: Read last count from storage
         self.count = 0
         
         super.init(name: "sessions")
     }
     
     override func flush() -> Any? {
-        // TODO: Save new count to storage
-        self.count += 1
+        let result = count
         
-        return self.count
+        count = 0
+        // TODO: Clear stored count
+        
+        return result
+    }
+    
+    public func increment() {
+        count += 1
+        // TODO: Store count
     }
 }
 
-class SessionDurationMeasurement: TelemetryMeasurement {
-    private var startTime: UIntMax
-    private var duration: UIntMax
+public class SessionDurationMeasurement: TelemetryMeasurement {
+    private var startTime: Date?
+    private var lastDuration: UInt64
     
     init() {
-        // TODO: Read last startTime from storage
-        self.startTime = 0
-        self.duration = 0
+        self.startTime = nil
+        self.lastDuration = 0
         
-        super.init(name: "sessions")
+        super.init(name: "durations")
     }
     
     override func flush() -> Any? {
-        // TODO: Save new count to storage
-        self.duration += 1
+        let result = lastDuration
+
+        lastDuration = 0
+        // TODO: Clear stored duration
         
-        return self.duration
+        return result
     }
     
-    func recordSessionStart() {
+    public func start() throws {
+        if startTime != nil {
+            throw NSError(domain: Telemetry.ErrorDomain, code: Telemetry.ErrorSessionAlreadyStarted, userInfo: [NSLocalizedDescriptionKey: "Session is already started"])
+        }
         
+        startTime = Date()
     }
     
-    func recordSessionEnd() {
-        
+    public func end() throws {
+        if startTime == nil {
+            throw NSError(domain: Telemetry.ErrorDomain, code: Telemetry.ErrorSessionNotStarted, userInfo: [NSLocalizedDescriptionKey: "Session has not started"])
+        }
+
+        lastDuration = UInt64(Date().timeIntervalSince(startTime!))
+        // TODO: Store lastDuration
+
+        startTime = nil
     }
 }
 
-class TimezoneOffsetMeasurement: StaticTelemetryMeasurement {
+public class SettingsMeasurement: TelemetryMeasurement {
+    private let configuration: TelemetryConfiguration
+    
+    init(configuration: TelemetryConfiguration) {
+        self.configuration = configuration
+
+        super.init(name: "settings")
+    }
+    
+    override func flush() -> Any? {
+        // XXX: TODO
+        return nil
+    }
+}
+
+public class TimezoneOffsetMeasurement: StaticTelemetryMeasurement {
     init() {
         super.init(name: "tz", value: TimeZone.current.abbreviation() ?? "")
     }
 }
 
-class VersionMeasurement: StaticTelemetryMeasurement {
+public class VersionMeasurement: StaticTelemetryMeasurement {
     init() {
         super.init(name: "v", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String)
     }

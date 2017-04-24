@@ -8,70 +8,27 @@
 
 import Foundation
 
-class TelemetryPing {
-    private let documentId: String
-    private let type: String
-    private let storage: TelemetryStorage
+public class TelemetryPing {
+    let pingType: String
+    let documentId: String
+    let uploadPath: String
+    let measurements: Dictionary<String, Any?>
     
-    private var measurements: Dictionary<String, TelemetryMeasurement>
+    init(pingType: String, documentId: String, uploadPath: String, measurements: Dictionary<String, Any?>) {
+        self.pingType = pingType
+        self.documentId = documentId
+        self.uploadPath = uploadPath
+        self.measurements = measurements
+    }
     
-    init(type: String, storage: TelemetryStorage, measurements: [TelemetryMeasurement]) {
-        self.documentId = UUID.init().uuidString
-        self.type = type
-        self.storage = storage
-
-        self.measurements = [:]
-
-        for measurement in measurements {
-            addMeasurement(measurement: measurement)
+    public func toJSON() -> String? {
+        let dict: Dictionary<String, Any> = ["pingType": pingType, "documentId": documentId, "uploadPath": uploadPath, "measurements": measurements]
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted)
+            return String(data: jsonData, encoding: .utf8)
+        } catch let error {
+            print("Error serializing TelemetryPing to JSON: \(error)")
+            return nil
         }
-    }
-    
-    func addMeasurement(measurement: TelemetryMeasurement) {
-        self.measurements[measurement.name] = measurement
-    }
-    
-    func flushMeasurements() -> Dictionary<String, Any> {
-        var results: Dictionary<String, Any> = [:]
-        
-        for (name, measurement) in self.measurements {
-            results[name] = measurement.flush()
-        }
-        
-        return results
-    }
-}
-
-class TelemetryCorePing: TelemetryPing {
-    private let sessionDurationMeasurement: SessionDurationMeasurement
-
-    init(storage: TelemetryStorage) {
-        self.sessionDurationMeasurement = SessionDurationMeasurement()
-        
-        super.init(type: "core", storage: storage, measurements: [
-            SequenceMeasurement(pingType: "core"),
-            LocaleMeasurement(),
-            OperatingSystemMeasurement(),
-            OperatingSystemVersionMeasurement(),
-            DeviceMeasurement(),
-            ArchitectureMeasurement(),
-            // ProfileDateMeasurement(profileDate: <#T##UIntMax#>),
-            // DefaultSearchMeasurement(defaultSearch: <#T##String#>),
-            // DistributionMeasurement(distributionId: <#T##String#>),
-            CreatedMeasurement(),
-            TimezoneOffsetMeasurement(),
-            SessionCountMeasurement(),
-            self.sessionDurationMeasurement,
-            // SearchMeasurement(searches: <#T##Dictionary<String, UIntMax>#>),
-            // ExperimentMeasurement(experiments: <#T##[String]#>)
-        ])
-    }
-    
-    func startSession() {
-        self.sessionDurationMeasurement.recordSessionStart()
-    }
-    
-    func endSession() {
-        self.sessionDurationMeasurement.recordSessionEnd()
     }
 }
