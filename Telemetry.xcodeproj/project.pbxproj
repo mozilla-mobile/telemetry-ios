@@ -16,7 +16,7 @@
 		D07FCCD41E774B0C00D5DE91 /* OHHTTPStubs.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D07FCCC31E7748D600D5DE91 /* OHHTTPStubs.framework */; };
 		D0A4EE8B1E78672B00952795 /* Telemetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A4EE8A1E78672B00952795 /* Telemetry.swift */; };
 		D0A4EE8D1E7868B700952795 /* TelemetryStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A4EE8C1E7868B700952795 /* TelemetryStorage.swift */; };
-		D0A4EE8F1E787AF400952795 /* TelemetryPings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A4EE8E1E787AF400952795 /* TelemetryPings.swift */; };
+		D0A4EE8F1E787AF400952795 /* TelemetryPing.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A4EE8E1E787AF400952795 /* TelemetryPing.swift */; };
 		D0A4EE911E787E5800952795 /* TelemetryMeasurements.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A4EE901E787E5800952795 /* TelemetryMeasurements.swift */; };
 		D0A4EE931E7892A600952795 /* TelemetryEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A4EE921E7892A600952795 /* TelemetryEvent.swift */; };
 		D0C86FAB1E8302CF00680F20 /* TelemetryClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C86FAA1E8302CF00680F20 /* TelemetryClient.swift */; };
@@ -58,7 +58,7 @@
 		D07FCCC31E7748D600D5DE91 /* OHHTTPStubs.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OHHTTPStubs.framework; path = Carthage/Build/iOS/OHHTTPStubs.framework; sourceTree = "<group>"; };
 		D0A4EE8A1E78672B00952795 /* Telemetry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Telemetry.swift; sourceTree = "<group>"; };
 		D0A4EE8C1E7868B700952795 /* TelemetryStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryStorage.swift; sourceTree = "<group>"; };
-		D0A4EE8E1E787AF400952795 /* TelemetryPings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryPings.swift; sourceTree = "<group>"; };
+		D0A4EE8E1E787AF400952795 /* TelemetryPing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryPing.swift; sourceTree = "<group>"; };
 		D0A4EE901E787E5800952795 /* TelemetryMeasurements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryMeasurements.swift; sourceTree = "<group>"; };
 		D0A4EE921E7892A600952795 /* TelemetryEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryEvent.swift; sourceTree = "<group>"; };
 		D0C86FAA1E8302CF00680F20 /* TelemetryClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryClient.swift; sourceTree = "<group>"; };
@@ -152,7 +152,7 @@
 				D0A4EE921E7892A600952795 /* TelemetryEvent.swift */,
 				D0A4EE901E787E5800952795 /* TelemetryMeasurements.swift */,
 				D0657F9C1EA6B5DF0090DFE7 /* TelemetryPingBuilder.swift */,
-				D0A4EE8E1E787AF400952795 /* TelemetryPings.swift */,
+				D0A4EE8E1E787AF400952795 /* TelemetryPing.swift */,
 				D0657F9A1EA6B5840090DFE7 /* TelemetryScheduler.swift */,
 				D0A4EE8C1E7868B700952795 /* TelemetryStorage.swift */,
 				D0F91B7F1EAE8694001AB82C /* TelemetryUtils.swift */,
@@ -379,7 +379,7 @@
 				D0657F9B1EA6B5840090DFE7 /* TelemetryScheduler.swift in Sources */,
 				D0657F9D1EA6B5DF0090DFE7 /* TelemetryPingBuilder.swift in Sources */,
 				D0C86FAB1E8302CF00680F20 /* TelemetryClient.swift in Sources */,
-				D0A4EE8F1E787AF400952795 /* TelemetryPings.swift in Sources */,
+				D0A4EE8F1E787AF400952795 /* TelemetryPing.swift in Sources */,
 				D0A4EE8B1E78672B00952795 /* Telemetry.swift in Sources */,
 				D0A4EE911E787E5800952795 /* TelemetryMeasurements.swift in Sources */,
 				D0A4EE8D1E7868B700952795 /* TelemetryStorage.swift in Sources */,

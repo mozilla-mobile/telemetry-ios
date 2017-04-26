@@ -16,26 +16,22 @@ public class Telemetry {
     public static let ErrorSessionAlreadyStarted: Int = 103
     public static let ErrorSessionNotStarted: Int = 104
 
-    private let storage: TelemetryStorage
-    
     public let configuration: TelemetryConfiguration
     
+    private let storage: TelemetryStorage
     private let client: TelemetryClient
     private let scheduler: TelemetryScheduler
 
-    private var pingBuilders: Dictionary<String, TelemetryPingBuilder>
+    private var pingBuilders: [String : TelemetryPingBuilder]
     
     public static let `default`: Telemetry = {
-        let storage = TelemetryStorage(name: "MozTelemetry")
-        
-        return Telemetry(storage: storage)
+        return Telemetry(storageName: "MozTelemetry")
     }()
     
-    public init(storage: TelemetryStorage) {
-        self.storage = storage
-        
+    public init(storageName: String) {
         self.configuration = TelemetryConfiguration()
         
+        self.storage = TelemetryStorage(name: storageName, configuration: configuration)
         self.client = TelemetryClient()
         self.scheduler = TelemetryScheduler()
         
@@ -43,7 +39,7 @@ public class Telemetry {
     }
     
     public func add<T: TelemetryPingBuilder>(pingBuilderType: T.Type) -> Telemetry {
-        let pingBuilder = pingBuilderType.init(configuration: configuration)
+        let pingBuilder = pingBuilderType.init(configuration: configuration, storage: storage)
         pingBuilders[pingBuilderType.PingType] = pingBuilder
         return self
     }

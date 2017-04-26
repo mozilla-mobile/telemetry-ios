@@ -23,7 +23,7 @@ public class TelemetryEvent {
     public let object: String?
     public let value: String?
     
-    private var extras: Dictionary<String, String>
+    private var extras: [String : String]
     
     init(category: String, method: String, object: String?, value: String?) {
         self.category = TelemetryUtils.truncate(string: category, maxLength: TelemetryEvent.MaxLengthCategory)!

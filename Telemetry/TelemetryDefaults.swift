@@ -16,6 +16,7 @@ public struct TelemetryDefaults {
     public static let ServerEndpoint = "https://incoming.telemetry.mozilla.org"
     public static let UserAgent = "Telemetry/1.0 (iOS)"
     public static let DataDirectory = FileManager.SearchPathDirectory.cachesDirectory
+    public static let ProfileFilename = "."
     public static let InitialBackoffForUpload = 30000
     public static let ConnectTimeout = 10000
     public static let ReadTimeout = 30000

@@ -89,6 +89,7 @@ public class DistributionMeasurement: StaticTelemetryMeasurement {
 
 public class EventsMeasurement: TelemetryMeasurement {
     private let configuration: TelemetryConfiguration
+    private let storage: TelemetryStorage
     
     private var events: [TelemetryEvent]
     
@@ -98,8 +99,9 @@ public class EventsMeasurement: TelemetryMeasurement {
         }
     }
     
-    init(configuration: TelemetryConfiguration) {
+    init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
         self.configuration = configuration
+        self.storage = storage
         
         self.events = []
         
@@ -143,13 +145,35 @@ public class OperatingSystemVersionMeasurement: StaticTelemetryMeasurement {
 }
 
 public class ProfileDateMeasurement: TelemetryMeasurement {
-    init() {
+    private let configuration: TelemetryConfiguration
+    
+    init(configuration: TelemetryConfiguration) {
+        self.configuration = configuration
+    
         super.init(name: "profileDate")
     }
-    
+
     override func flush() -> Any? {
-        // XXX: TODO
-        return nil
+        let oneSecondInMilliseconds: UInt64 = 1000
+        let oneMinuteInMilliseconds: UInt64 = 60 * oneSecondInMilliseconds
+        let oneHourInMilliseconds: UInt64 = 60 * oneMinuteInMilliseconds
+        let oneDayInMilliseconds: UInt64 = 24 * oneHourInMilliseconds
+
+        if let url = try? FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent(configuration.profileFilename) {
+            if let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
+               let creationDate = attributes[FileAttributeKey.creationDate] as? Date {
+                let seconds = UInt64(creationDate.timeIntervalSince1970)
+                let days = UInt64(seconds * oneSecondInMilliseconds / oneDayInMilliseconds)
+                
+                return days
+            }
+        }
+
+        // Fallback to current date if profile cannot be found
+        let seconds = UInt64(Date().timeIntervalSince1970)
+        let days = UInt64(seconds * oneSecondInMilliseconds / oneDayInMilliseconds)
+        
+        return days
     }
 }
 
@@ -169,58 +193,63 @@ public class SearchesMeasurement: TelemetryMeasurement {
 }
 
 public class SequenceMeasurement: TelemetryMeasurement {
-    private let configuration: TelemetryConfiguration
+    private let storage: TelemetryStorage
     private let pingType: String
-
-    private var sequence: UIntMax
     
-    init(configuration: TelemetryConfiguration, pingType: String) {
-        self.configuration = configuration
+    init(storage: TelemetryStorage, pingType: String) {
+        self.storage = storage
         self.pingType = pingType
-
-        // TODO: Read last sequence from storage
-        self.sequence = 0
 
         super.init(name: "seq")
     }
     
     override func flush() -> Any? {
-        // TODO: Save new sequence to storage
-        self.sequence += 1
+        var sequence: UIntMax = storage.get(valueFor: "\(pingType)-seq") as? UIntMax ?? 0
 
-        return self.sequence
+        sequence += 1
+        
+        storage.set(key: "\(pingType)-seq", value: sequence)
+
+        return sequence
     }
 }
 
 public class SessionCountMeasurement: TelemetryMeasurement {
-    private var count: UIntMax
+    private let storage: TelemetryStorage
     
-    init() {
-        self.count = 0
+    init(storage: TelemetryStorage) {
+        self.storage = storage
         
         super.init(name: "sessions")
     }
     
     override func flush() -> Any? {
-        let result = count
+        let sessions: UIntMax = storage.get(valueFor: "sessions") as? UIntMax ?? 0
         
-        count = 0
-        // TODO: Clear stored count
+        // XXX: Reset sessions count?
+        storage.set(key: "sessions", value: 0)
         
-        return result
+        return sessions
     }
     
     public func increment() {
-        count += 1
-        // TODO: Store count
+        var sessions: UIntMax = storage.get(valueFor: "sessions") as? UIntMax ?? 0
+        
+        sessions += 1
+
+        storage.set(key: "sessions", value: sessions)
     }
 }
 
 public class SessionDurationMeasurement: TelemetryMeasurement {
+    private let storage: TelemetryStorage
+    
     private var startTime: Date?
     private var lastDuration: UInt64
     
-    init() {
+    init(storage: TelemetryStorage) {
+        self.storage = storage
+        
         self.startTime = nil
         self.lastDuration = 0
         

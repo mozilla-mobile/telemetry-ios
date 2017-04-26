@@ -16,13 +16,14 @@ public class TelemetryPingBuilder {
     public class var Version: Int {
         return -1
     }
-    
-    public let configuration: TelemetryConfiguration
 
     public let documentId: String
     
-    private var measurements: [TelemetryMeasurement]
-    
+    private(set) public var measurements: [TelemetryMeasurement]
+
+    fileprivate let configuration: TelemetryConfiguration
+    fileprivate let storage: TelemetryStorage
+
     public var canBuild: Bool {
         get { return true }
     }
@@ -38,12 +39,13 @@ public class TelemetryPingBuilder {
         }
     }
     
-    required public init(configuration: TelemetryConfiguration) {
-        self.configuration = configuration
-        
+    required public init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
         self.documentId = UUID.init().uuidString
         
         self.measurements = []
+        
+        self.configuration = configuration
+        self.storage = storage
     }
     
     public func add(measurement: TelemetryMeasurement) {
@@ -52,11 +54,11 @@ public class TelemetryPingBuilder {
     
     public func build() -> TelemetryPing {
         let pingType = type(of: self).PingType
-        return TelemetryPing(pingType: pingType, documentId: documentId, uploadPath: uploadPath, measurements: flushMeasurements())
+        return TelemetryPing(pingType: pingType, documentId: documentId, uploadPath: uploadPath, measurements: flushMeasurements(), timestamp: Date().timeIntervalSince1970)
     }
     
-    private func flushMeasurements() -> Dictionary<String, Any?> {
-        var results: Dictionary<String, Any?> = [:]
+    private func flushMeasurements() -> [String : Any?] {
+        var results: [String : Any?] = [:]
         
         for measurement in measurements {
             results[measurement.name] = measurement.flush()
@@ -86,23 +88,23 @@ public class CorePingBuilder: TelemetryPingBuilder {
         }
     }
     
-    required public init(configuration: TelemetryConfiguration) {
-        self.sessionCountMeasurement = SessionCountMeasurement()
-        self.sessionDurationMeasurement = SessionDurationMeasurement()
+    required public init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
+        self.sessionCountMeasurement = SessionCountMeasurement(storage: storage)
+        self.sessionDurationMeasurement = SessionDurationMeasurement(storage: storage)
         self.defaultSearchMeasurement = DefaultSearchMeasurement()
         self.searchesMeasurement = SearchesMeasurement()
         
-        super.init(configuration: configuration)
+        super.init(configuration: configuration, storage: storage)
         
         let pingType = type(of: self).PingType
         
-        self.add(measurement: SequenceMeasurement(configuration: self.configuration, pingType: pingType))
+        self.add(measurement: SequenceMeasurement(storage: storage, pingType: pingType))
         self.add(measurement: LocaleMeasurement())
         self.add(measurement: OperatingSystemMeasurement())
         self.add(measurement: OperatingSystemVersionMeasurement())
         self.add(measurement: DeviceMeasurement())
         self.add(measurement: ArchitectureMeasurement())
-        self.add(measurement: ProfileDateMeasurement())
+        self.add(measurement: ProfileDateMeasurement(configuration: configuration))
         self.add(measurement: CreatedMeasurement())
         self.add(measurement: TimezoneOffsetMeasurement())
         self.add(measurement: self.sessionCountMeasurement)
@@ -158,14 +160,14 @@ public class FocusEventPingBuilder: TelemetryPingBuilder {
         }
     }
     
-    required public init(configuration: TelemetryConfiguration) {
-        self.eventsMeasurement = EventsMeasurement(configuration: configuration)
+    required public init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
+        self.eventsMeasurement = EventsMeasurement(configuration: configuration, storage: storage)
         
-        super.init(configuration: configuration)
+        super.init(configuration: configuration, storage: storage)
         
         let pingType = type(of: self).PingType
 
-        self.add(measurement: SequenceMeasurement(configuration: self.configuration, pingType: pingType))
+        self.add(measurement: SequenceMeasurement(storage: storage, pingType: pingType))
         self.add(measurement: LocaleMeasurement())
         self.add(measurement: OperatingSystemMeasurement())
         self.add(measurement: OperatingSystemVersionMeasurement())

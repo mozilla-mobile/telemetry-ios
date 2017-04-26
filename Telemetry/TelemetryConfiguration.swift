@@ -16,6 +16,7 @@ public class TelemetryConfiguration {
     public var serverEndpoint: String
     public var userAgent: String
     public var dataDirectory: FileManager.SearchPathDirectory
+    public var profileFilename: String
     public var initialBackoffForUpload: Int
     public var connectTimeout: Int
     public var readTimeout: Int
@@ -27,7 +28,7 @@ public class TelemetryConfiguration {
     public var isCollectionEnabled: Bool
     public var isUploadEnabled: Bool
 
-    public var telemetryPreferences: Dictionary<String, Any?>
+    public var telemetryPreferences: [String : Any?]
     
     public init() {
         let info = Bundle.main.infoDictionary
@@ -39,6 +40,7 @@ public class TelemetryConfiguration {
         self.serverEndpoint = TelemetryDefaults.ServerEndpoint
         self.userAgent = TelemetryDefaults.UserAgent
         self.dataDirectory = TelemetryDefaults.DataDirectory
+        self.profileFilename = TelemetryDefaults.ProfileFilename
         self.initialBackoffForUpload = TelemetryDefaults.InitialBackoffForUpload
         self.connectTimeout = TelemetryDefaults.ConnectTimeout
         self.readTimeout = TelemetryDefaults.ReadTimeout
