@@ -38,15 +38,14 @@ public class Telemetry {
         self.pingBuilders = [:]
     }
     
-    public func add<T: TelemetryPingBuilder>(pingBuilderType: T.Type) -> Telemetry {
+    public func add<T: TelemetryPingBuilder>(pingBuilderType: T.Type) {
         let pingBuilder = pingBuilderType.init(configuration: configuration, storage: storage)
         pingBuilders[pingBuilderType.PingType] = pingBuilder
-        return self
     }
     
-    public func queue(pingType: String) throws -> Telemetry {
+    public func queue(pingType: String) throws {
         if !self.configuration.isCollectionEnabled {
-            return self
+            return
         }
         
         guard let pingBuilder = self.pingBuilders[pingType] else {
@@ -57,12 +56,11 @@ public class Telemetry {
             let ping = pingBuilder.build()
             self.storage.store(ping: ping)
         }
-        return self
     }
     
-    public func queueEvent(event: TelemetryEvent) throws -> Telemetry {
+    public func queueEvent(event: TelemetryEvent) throws {
         if !self.configuration.isCollectionEnabled {
-            return self
+            return
         }
         
         guard let pingBuilder: FocusEventPingBuilder = self.pingBuilders[FocusEventPingBuilder.PingType] as? FocusEventPingBuilder else {
@@ -79,10 +77,9 @@ public class Telemetry {
             let ping = pingBuilder.build()
             self.storage.store(ping: ping)
         }
-        return self
     }
     
-    public func scheduleUpload() -> Telemetry {
+    public func scheduleUpload() {
         DispatchQueue.main.async {
             if !self.configuration.isUploadEnabled {
                 return
@@ -90,12 +87,11 @@ public class Telemetry {
             
             self.scheduler.scheduleUpload(configuration: self.configuration)
         }
-        return self
     }
     
-    public func recordSessionStart() throws -> Telemetry {
+    public func recordSessionStart() throws {
         if !configuration.isCollectionEnabled {
-            return self
+            return
         }
         
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
@@ -103,12 +99,11 @@ public class Telemetry {
         }
         
         try pingBuilder.startSession()
-        return self
     }
     
-    public func recordSessionEnd() throws -> Telemetry {
+    public func recordSessionEnd() throws {
         if !configuration.isCollectionEnabled {
-            return self
+            return
         }
 
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
@@ -116,12 +111,11 @@ public class Telemetry {
         }
         
         try pingBuilder.endSession()
-        return self
     }
     
-    public func recordDefaultSearchProviderChange(searchEngine: String) throws -> Telemetry {
+    public func recordDefaultSearchProviderChange(searchEngine: String) throws {
         if !configuration.isCollectionEnabled {
-            return self
+            return
         }
         
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
@@ -129,13 +123,11 @@ public class Telemetry {
         }
         
         pingBuilder.changeDefaultSearch(searchEngine: searchEngine)
-        
-        return self
     }
     
-    public func recordSearch(location: String, searchEngine: String) throws -> Telemetry {
+    public func recordSearch(location: String, searchEngine: String) throws {
         if !configuration.isCollectionEnabled {
-            return self
+            return
         }
         
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
@@ -143,8 +135,6 @@ public class Telemetry {
         }
         
         pingBuilder.search(location: location, searchEngine: searchEngine)
-        
-        return self
     }
     
 //    private func upload(completionHandler: @escaping (Data?, Error?)->Void = {_,_ in }) {
