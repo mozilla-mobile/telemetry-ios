@@ -9,13 +9,17 @@
 import Foundation
 
 public class TelemetryClient: NSObject {
+    private let configuration: TelemetryConfiguration
+
     private let sessionConfiguration: URLSessionConfiguration
     private let operationQueue: OperationQueue
     
     fileprivate var response: URLResponse?
     fileprivate var handler: (URLResponse?, Data?, Error?) -> Void
     
-    public override init() {
+    public init(configuration: TelemetryConfiguration) {
+        self.configuration = configuration
+
         #if DEBUG
             // Cannot intercept background HTTP request using OHHTTPStubs in test environment.
             if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
@@ -29,6 +33,29 @@ public class TelemetryClient: NSObject {
 
         self.operationQueue = OperationQueue()
         self.handler = {_,_,_ in}
+    }
+    
+    public func upload(ping: TelemetryPing, completionHandler: @escaping (Error?) -> Void) -> Void {
+        guard let url = URL(string: "\(configuration.serverEndpoint)\(ping.uploadPath)") else {
+            print("Invalid upload URL: \(configuration.serverEndpoint)\(ping.uploadPath)")
+            // TODO: Call completionHandler with Error
+            return
+        }
+        
+        guard let data = ping.measurementsJSON() else {
+            print("Error generating JSON data for TelemetryPing")
+            // TODO: Call completionHandler with Error
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.addValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        request.addValue(configuration.userAgent, forHTTPHeaderField: "User-Agent")
+        request.httpMethod = "POST"
+
+        let session = URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: operationQueue)
+        let task = session.uploadTask(with: request, from: data)
+        task.resume()
     }
     
     public func send(request: URLRequest, completionHandler: @escaping (URLResponse?, Data?, Error?) -> Void) {

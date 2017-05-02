@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 public class Telemetry {
     public static let ErrorDomain: String = "TelemetryErrorDomain"
@@ -19,7 +20,6 @@ public class Telemetry {
     public let configuration: TelemetryConfiguration
     
     private let storage: TelemetryStorage
-    private let client: TelemetryClient
     private let scheduler: TelemetryScheduler
 
     private var pingBuilders: [String : TelemetryPingBuilder]
@@ -32,8 +32,7 @@ public class Telemetry {
         self.configuration = TelemetryConfiguration()
         
         self.storage = TelemetryStorage(name: storageName, configuration: configuration)
-        self.client = TelemetryClient()
-        self.scheduler = TelemetryScheduler()
+        self.scheduler = TelemetryScheduler(configuration: configuration, storage: storage)
         
         self.pingBuilders = [:]
     }
@@ -79,13 +78,24 @@ public class Telemetry {
         }
     }
     
-    public func scheduleUpload() {
-        DispatchQueue.main.async {
-            if !self.configuration.isUploadEnabled {
-                return
-            }
+    public func scheduleUpload(pingType: String) {
+        if !self.configuration.isUploadEnabled {
+            return
+        }
+        
+        var backgroundTask: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
+        backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "MozTelemetryUpload") {
+            // XXX: Clean up unfinished tasks
             
-            self.scheduler.scheduleUpload(configuration: self.configuration)
+            UIApplication.shared.endBackgroundTask(backgroundTask)
+            backgroundTask = UIBackgroundTaskInvalid
+        }
+
+        DispatchQueue.main.async {
+            self.scheduler.scheduleUpload(pingType: pingType) {
+                UIApplication.shared.endBackgroundTask(backgroundTask)
+                backgroundTask = UIBackgroundTaskInvalid
+            }
         }
     }
     

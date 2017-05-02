@@ -104,7 +104,7 @@ public class TelemetryStorage {
             if let jsonString = String(data: jsonData, encoding: .utf8) {
                 try jsonString.write(toFile: url.path, atomically: true, encoding: .utf8)
             } else {
-                print("ERROR: Unable to generate string from JSON data")
+                print("ERROR: Unable to generate JSON data")
             }
         } catch {
             print(error.localizedDescription)

@@ -39,10 +39,10 @@ public class TelemetryPing {
         return ["timestamp": timestamp, "pingType": pingType, "documentId": documentId, "uploadPath": uploadPath, "measurements": measurements]
     }
     
-    public func toJSON() -> String? {
+    public func measurementsJSON() -> Data? {
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: toDictionary(), options: .prettyPrinted)
-            return String(data: jsonData, encoding: .utf8)
+            let jsonData = try JSONSerialization.data(withJSONObject: measurements, options: [])
+            return jsonData
         } catch let error {
             print("Error serializing TelemetryPing to JSON: \(error)")
             return nil
