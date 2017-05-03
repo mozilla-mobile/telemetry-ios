@@ -78,11 +78,17 @@ public class ClientIdMeasurement: TelemetryMeasurement {
     }
 }
 
-public class CreatedMeasurement: StaticTelemetryMeasurement {
+public class CreatedDateMeasurement: StaticTelemetryMeasurement {
     init() {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         super.init(name: "created", value: dateFormatter.string(from: Date()))
+    }
+}
+
+public class CreatedTimestampMeasurement: StaticTelemetryMeasurement {
+    init() {
+        super.init(name: "created", value: UIntMax(Date().timeIntervalSince1970 * 1000))
     }
 }
 
@@ -117,10 +123,10 @@ public class DistributionMeasurement: StaticTelemetryMeasurement {
 }
 
 public class EventsMeasurement: TelemetryMeasurement {
-    private let configuration: TelemetryConfiguration
     private let storage: TelemetryStorage
+    private let pingType: String
     
-    private var events: [TelemetryEvent]
+    private var events: [[Any?]]
     
     public var numberOfEvents: Int {
         get {
@@ -128,24 +134,28 @@ public class EventsMeasurement: TelemetryMeasurement {
         }
     }
     
-    init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
-        self.configuration = configuration
+    init(storage: TelemetryStorage, pingType: String) {
         self.storage = storage
+        self.pingType = pingType
         
-        self.events = []
+        self.events = storage.get(valueFor: "\(pingType)-events") as? [[Any?]] ?? []
         
         super.init(name: "events")
     }
     
     public func add(event: TelemetryEvent) {
-        events.append(event)
+        events.append(event.toArray())
 
-        // XXX: TODO - Persist to disk
+        storage.set(key: "\(pingType)-events", value: events)
     }
     
     override func flush() -> Any? {
-        // XXX: TODO
-        return nil
+        let events = self.events
+        
+        self.events = []
+        storage.set(key: "\(pingType)-events", value: self.events)
+        
+        return events
     }
 }
 
@@ -289,7 +299,7 @@ public class SessionDurationMeasurement: TelemetryMeasurement {
         let result = lastDuration
 
         lastDuration = 0
-        // TODO: Clear stored duration
+        // TODO: Clear stored duration?
         
         return result
     }
@@ -308,7 +318,7 @@ public class SessionDurationMeasurement: TelemetryMeasurement {
         }
 
         lastDuration = UInt64(Date().timeIntervalSince(startTime!))
-        // TODO: Store lastDuration
+        // TODO: Store lastDuration?
 
         startTime = nil
     }
@@ -325,7 +335,7 @@ public class SettingsMeasurement: TelemetryMeasurement {
     
     override func flush() -> Any? {
         // XXX: TODO
-        return nil
+        return [:]
     }
 }
 

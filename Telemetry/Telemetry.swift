@@ -45,12 +45,16 @@ public class Telemetry {
         }
         
         DispatchQueue.main.async {
+            if !pingBuilder.canBuild {
+                return
+            }
+
             let ping = pingBuilder.build()
             self.storage.enqueue(ping: ping)
         }
     }
     
-    public func queueEvent(event: TelemetryEvent) throws {
+    public func record(event: TelemetryEvent) throws {
         if !self.configuration.isCollectionEnabled {
             return
         }
@@ -77,7 +81,7 @@ public class Telemetry {
         }
         
         var backgroundTask: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
-        backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "MozTelemetryUpload") {
+        backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "MozTelemetryUpload-\(pingType)") {
             // XXX: Clean up unfinished tasks?
             
             UIApplication.shared.endBackgroundTask(backgroundTask)

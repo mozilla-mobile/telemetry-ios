@@ -14,7 +14,6 @@ public class TelemetryUtils {
             return nil
         }
         
-        let index = string.index(string.startIndex, offsetBy: maxLength)
-        return string.substring(to: index)
+        return String(string.characters.prefix(maxLength))
     }
 }

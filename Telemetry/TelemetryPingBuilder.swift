@@ -98,17 +98,15 @@ public class CorePingBuilder: TelemetryPingBuilder {
         
         super.init(configuration: configuration, storage: storage)
         
-        let pingType = type(of: self).PingType
-        
         self.add(measurement: ClientIdMeasurement(storage: storage))
-        self.add(measurement: SequenceMeasurement(storage: storage, pingType: pingType))
+        self.add(measurement: SequenceMeasurement(storage: storage, pingType: type(of: self).PingType))
         self.add(measurement: LocaleMeasurement())
         self.add(measurement: OperatingSystemMeasurement())
         self.add(measurement: OperatingSystemVersionMeasurement())
         self.add(measurement: DeviceMeasurement())
         self.add(measurement: ArchitectureMeasurement())
         self.add(measurement: ProfileDateMeasurement(configuration: configuration))
-        self.add(measurement: CreatedMeasurement())
+        self.add(measurement: CreatedDateMeasurement())
         self.add(measurement: TimezoneOffsetMeasurement())
         self.add(measurement: VersionMeasurement(version: type(of: self).Version))
         self.add(measurement: self.sessionCountMeasurement)
@@ -165,19 +163,19 @@ public class FocusEventPingBuilder: TelemetryPingBuilder {
     }
     
     required public init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
-        self.eventsMeasurement = EventsMeasurement(configuration: configuration, storage: storage)
+        self.eventsMeasurement = EventsMeasurement(storage: storage, pingType: type(of: self).PingType)
         
         super.init(configuration: configuration, storage: storage)
-        
-        let pingType = type(of: self).PingType
 
-        self.add(measurement: SequenceMeasurement(storage: storage, pingType: pingType))
+        self.add(measurement: ClientIdMeasurement(storage: storage))
+        self.add(measurement: SequenceMeasurement(storage: storage, pingType: type(of: self).PingType))
         self.add(measurement: LocaleMeasurement())
         self.add(measurement: OperatingSystemMeasurement())
         self.add(measurement: OperatingSystemVersionMeasurement())
-        self.add(measurement: CreatedMeasurement())
+        self.add(measurement: CreatedTimestampMeasurement())
         self.add(measurement: TimezoneOffsetMeasurement())
         self.add(measurement: SettingsMeasurement(configuration: configuration))
+        self.add(measurement: VersionMeasurement(version: type(of: self).Version))
         
         self.add(measurement: self.eventsMeasurement)
     }
