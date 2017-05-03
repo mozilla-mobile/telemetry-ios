@@ -18,9 +18,12 @@ try! Telemetry.default.recordSessionEnd()
 
 try! Telemetry.default.queue(pingType: CorePingBuilder.PingType)
 
-DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2)) { 
+DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2)) {
     let storage = TelemetryStorage(name: "MozTelemetry", configuration: Telemetry.default.configuration)
-    storage.load(pingType: "core")
+    
+    while let ping = storage.dequeue(pingType: CorePingBuilder.PingType) {
+        print(String(data: ping.measurementsJSON()!, encoding: .utf8)!)
+    }
 }
 
 PlaygroundPage.current.needsIndefiniteExecution = true

@@ -267,7 +267,7 @@ public class SessionDurationMeasurement: TelemetryMeasurement {
     
     public func start() throws {
         if startTime != nil {
-            throw NSError(domain: Telemetry.ErrorDomain, code: Telemetry.ErrorSessionAlreadyStarted, userInfo: [NSLocalizedDescriptionKey: "Session is already started"])
+            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.SessionAlreadyStarted, userInfo: [NSLocalizedDescriptionKey: "Session is already started"])
         }
         
         startTime = Date()
@@ -275,7 +275,7 @@ public class SessionDurationMeasurement: TelemetryMeasurement {
     
     public func end() throws {
         if startTime == nil {
-            throw NSError(domain: Telemetry.ErrorDomain, code: Telemetry.ErrorSessionNotStarted, userInfo: [NSLocalizedDescriptionKey: "Session has not started"])
+            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.SessionNotStarted, userInfo: [NSLocalizedDescriptionKey: "Session has not started"])
         }
 
         lastDuration = UInt64(Date().timeIntervalSince(startTime!))

@@ -10,13 +10,6 @@ import Foundation
 import UIKit
 
 public class Telemetry {
-    public static let ErrorDomain: String = "TelemetryErrorDomain"
-    
-    public static let ErrorWrongConfiguration: Int = 101
-    public static let ErrorTooManyEventExtras: Int = 102
-    public static let ErrorSessionAlreadyStarted: Int = 103
-    public static let ErrorSessionNotStarted: Int = 104
-
     public let configuration: TelemetryConfiguration
     
     private let storage: TelemetryStorage
@@ -48,12 +41,12 @@ public class Telemetry {
         }
         
         guard let pingBuilder = self.pingBuilders[pingType] else {
-            throw NSError(domain: Telemetry.ErrorDomain, code: Telemetry.ErrorWrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(pingType)"])
+            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(pingType)"])
         }
         
         DispatchQueue.main.async {
             let ping = pingBuilder.build()
-            self.storage.store(ping: ping)
+            self.storage.enqueue(ping: ping)
         }
     }
     
@@ -63,7 +56,7 @@ public class Telemetry {
         }
         
         guard let pingBuilder: FocusEventPingBuilder = self.pingBuilders[FocusEventPingBuilder.PingType] as? FocusEventPingBuilder else {
-            throw NSError(domain: Telemetry.ErrorDomain, code: Telemetry.ErrorWrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(FocusEventPingBuilder.PingType)"])
+            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(FocusEventPingBuilder.PingType)"])
         }
 
         DispatchQueue.main.async {
@@ -74,7 +67,7 @@ public class Telemetry {
             }
 
             let ping = pingBuilder.build()
-            self.storage.store(ping: ping)
+            self.storage.enqueue(ping: ping)
         }
     }
     
@@ -105,7 +98,7 @@ public class Telemetry {
         }
         
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
-            throw NSError(domain: Telemetry.ErrorDomain, code: Telemetry.ErrorWrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)"])
+            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)"])
         }
         
         try pingBuilder.startSession()
@@ -117,7 +110,7 @@ public class Telemetry {
         }
 
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
-            throw NSError(domain: Telemetry.ErrorDomain, code: Telemetry.ErrorWrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)"])
+            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)"])
         }
         
         try pingBuilder.endSession()
@@ -129,7 +122,7 @@ public class Telemetry {
         }
         
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
-            throw NSError(domain: Telemetry.ErrorDomain, code: Telemetry.ErrorWrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)"])
+            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)"])
         }
         
         pingBuilder.changeDefaultSearch(searchEngine: searchEngine)
@@ -141,7 +134,7 @@ public class Telemetry {
         }
         
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
-            throw NSError(domain: Telemetry.ErrorDomain, code: Telemetry.ErrorWrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)"])
+            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)"])
         }
         
         pingBuilder.search(location: location, searchEngine: searchEngine)

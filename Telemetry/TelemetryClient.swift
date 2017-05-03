@@ -14,8 +14,9 @@ public class TelemetryClient: NSObject {
     private let sessionConfiguration: URLSessionConfiguration
     private let operationQueue: OperationQueue
     
+    fileprivate var completionHandler: (Error?) -> Void
+    
     fileprivate var response: URLResponse?
-    fileprivate var handler: (URLResponse?, Data?, Error?) -> Void
     
     public init(configuration: TelemetryConfiguration) {
         self.configuration = configuration
@@ -32,22 +33,29 @@ public class TelemetryClient: NSObject {
         #endif
 
         self.operationQueue = OperationQueue()
-        self.handler = {_,_,_ in}
+        
+        self.completionHandler = {_ in}
     }
     
     public func upload(ping: TelemetryPing, completionHandler: @escaping (Error?) -> Void) -> Void {
         guard let url = URL(string: "\(configuration.serverEndpoint)\(ping.uploadPath)") else {
-            print("Invalid upload URL: \(configuration.serverEndpoint)\(ping.uploadPath)")
-            // TODO: Call completionHandler with Error
+            let error = NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.InvalidUploadURL, userInfo: [NSLocalizedDescriptionKey: "Invalid upload URL: \(configuration.serverEndpoint)\(ping.uploadPath)"])
+            
+            print(error.localizedDescription)
+            completionHandler(error)
             return
         }
         
         guard let data = ping.measurementsJSON() else {
-            print("Error generating JSON data for TelemetryPing")
-            // TODO: Call completionHandler with Error
+            let error = NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.CannotGenerateJSON, userInfo: [NSLocalizedDescriptionKey: "Error generating JSON data for TelemetryPing"])
+
+            print(error.localizedDescription)
+            completionHandler(error)
             return
         }
 
+        self.completionHandler = completionHandler
+        
         var request = URLRequest(url: url)
         request.addValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
         request.addValue(configuration.userAgent, forHTTPHeaderField: "User-Agent")
@@ -55,14 +63,6 @@ public class TelemetryClient: NSObject {
 
         let session = URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: operationQueue)
         let task = session.uploadTask(with: request, from: data)
-        task.resume()
-    }
-    
-    public func send(request: URLRequest, completionHandler: @escaping (URLResponse?, Data?, Error?) -> Void) {
-        self.handler = completionHandler
-
-        let session = URLSession(configuration: self.sessionConfiguration, delegate: self, delegateQueue: self.operationQueue)
-        let task = session.dataTask(with: request)
         task.resume()
     }
 }
@@ -75,11 +75,11 @@ extension TelemetryClient: URLSessionDataDelegate {
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if error != nil {
-            self.handler(self.response, nil, error)
+            completionHandler(error)
         }
     }
     
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        self.handler(self.response, data, nil)
+        completionHandler(nil)
     }
 }

@@ -36,7 +36,7 @@ public class TelemetryEvent {
     
     public func addExtra(key: String, value: String) throws {
         if extras.count >= TelemetryEvent.MaxNumberOfExtras {
-            throw NSError(domain: Telemetry.ErrorDomain, code: Telemetry.ErrorTooManyEventExtras, userInfo: [NSLocalizedDescriptionKey: "Exceeded maximum limit of \(TelemetryEvent.MaxNumberOfExtras) TelemetryEvent extras"])
+            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.TooManyEventExtras, userInfo: [NSLocalizedDescriptionKey: "Exceeded maximum limit of \(TelemetryEvent.MaxNumberOfExtras) TelemetryEvent extras"])
         }
 
         let truncatedKey = TelemetryUtils.truncate(string: key, maxLength: TelemetryEvent.MaxLengthExtraKey)

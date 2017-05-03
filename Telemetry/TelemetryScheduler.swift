@@ -25,12 +25,10 @@ public class TelemetryScheduler {
         if hasReachedDailyUploadLimit(forPingType: pingType) {
             return
         }
-        
-        let pings = storage.load(pingType: pingType)
 
         let dispatchGroup = DispatchGroup()
         
-        for ping in pings {
+        while let ping = storage.dequeue(pingType: pingType) {
             dispatchGroup.enter()
 
             client.upload(ping: ping) { (error) in

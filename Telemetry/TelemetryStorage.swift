@@ -22,10 +22,10 @@ public class TelemetryStorage {
             if let dict = json as? [String : Any?] {
                 return dict[key] ?? nil
             } else {
-                print("Value not found in \(name)-values.json for key '\(key)'")
+                print("TelemetryStorage.get(): Value not found in \(name)-values.json for key '\(key)'")
             }
         } else {
-            print("Unable to open \(name)-values.json")
+            print("TelemetryStorage.get(): Unable to open \(name)-values.json")
         }
         
         return nil
@@ -40,45 +40,43 @@ public class TelemetryStorage {
         save(object: dict, toFile: "\(name)-values.json")
     }
 
-    public func load(pingType: String) -> [TelemetryPing] {
+    public func dequeue(pingType: String) -> TelemetryPing? {
         if let json = open(filename: "\(name)-\(pingType).json") {
-            if let items = json as? [Any] {
-                var pings: [TelemetryPing] = []
-                
-                for (index, item) in items.enumerated() {
-                    if let dict = item as? [String : Any] {
-                        if let ping = TelemetryPing.from(dictionary: dict) {
-                            pings.append(ping)
-                        } else {
-                            print("Unable to deserialize TelemetryPing in \(name)-\(pingType).json at index \(index)")
-                        }
+            if var dicts = json as? [[String : Any]] {
+                if dicts.count > 0 {
+                    if let ping = TelemetryPing.from(dictionary: dicts.remove(at: 0)) {
+                        save(object: dicts, toFile: "\(name)-\(pingType).json")
+                        return ping
                     } else {
-                        print("Invalid TelemetryPing in \(name)-\(pingType).json at index \(index)")
+                        print("TelemetryStorage.dequeue(): Unable to deserialize TelemetryPing in \(name)-\(pingType).json at index 0")
+                        save(object: dicts, toFile: "\(name)-\(pingType).json")
                     }
                 }
-                
-                return pings
             } else {
-                print("Root array not found in \(name)-\(pingType).json")
+                print("TelemetryStorage.dequeue(): Root array not found in \(name)-\(pingType).json")
             }
         } else {
-            print("Unable to open \(name)-\(pingType).json")
+            print("TelemetryStorage.dequeue(): Unable to open \(name)-\(pingType).json")
         }
         
-        return []
+        return nil
     }
-
-    public func store(ping: TelemetryPing) {
-        var dicts: [[String : Any]] = []
-
-        var pings = load(pingType: ping.pingType)
-        pings.append(ping)
-        
-        for ping in pings {
-            dicts.append(ping.toDictionary())
+    
+    public func enqueue(ping: TelemetryPing) {
+        if let json = open(filename: "\(name)-\(ping.pingType).json") {
+            if var dicts = json as? [[String : Any]] {
+                dicts.append(ping.toDictionary())
+                
+                save(object: dicts, toFile: "\(name)-\(ping.pingType).json")
+                return
+            } else {
+                print("TelemetryStorage.enqueue(): Root array not found in \(name)-\(ping.pingType).json")
+            }
+        } else {
+            print("TelemetryStorage.enqueue(): Unable to open \(name)-\(ping.pingType).json")
         }
         
-        save(object: dicts, toFile: "\(name)-\(ping.pingType).json")
+        save(object: [ping.toDictionary()], toFile: "\(name)-\(ping.pingType).json")
     }
     
     private func open(filename: String) -> Any? {
