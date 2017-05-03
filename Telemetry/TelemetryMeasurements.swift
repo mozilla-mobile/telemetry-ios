@@ -49,6 +49,35 @@ public class ArchitectureMeasurement: StaticTelemetryMeasurement {
     }
 }
 
+public class ClientIdMeasurement: TelemetryMeasurement {
+    private let storage: TelemetryStorage
+    
+    private var value: String?
+    
+    init(storage: TelemetryStorage) {
+        self.storage = storage
+        
+        super.init(name: "clientId")
+    }
+    
+    override func flush() -> Any? {
+        if value != nil {
+            return value
+        }
+        
+        if let clientId = storage.get(valueFor: "clientId") as? String {
+            value = clientId
+            return value
+        }
+        
+        value = UUID.init().uuidString
+        
+        storage.set(key: "clientId", value: value)
+        
+        return value
+    }
+}
+
 public class CreatedMeasurement: StaticTelemetryMeasurement {
     init() {
         let dateFormatter = DateFormatter()
@@ -302,12 +331,12 @@ public class SettingsMeasurement: TelemetryMeasurement {
 
 public class TimezoneOffsetMeasurement: StaticTelemetryMeasurement {
     init() {
-        super.init(name: "tz", value: TimeZone.current.abbreviation() ?? "")
+        super.init(name: "tz", value: TimeZone.current.secondsFromGMT() / 60)
     }
 }
 
 public class VersionMeasurement: StaticTelemetryMeasurement {
-    init() {
-        super.init(name: "v", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String)
+    init(version: Int) {
+        super.init(name: "v", value: version)
     }
 }

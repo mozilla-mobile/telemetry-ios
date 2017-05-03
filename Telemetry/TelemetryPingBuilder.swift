@@ -61,7 +61,9 @@ public class TelemetryPingBuilder {
         var results: [String : Any?] = [:]
         
         for measurement in measurements {
-            results[measurement.name] = measurement.flush()
+            if let value = measurement.flush() {
+                results[measurement.name] = value
+            }
         }
         
         return results
@@ -98,6 +100,7 @@ public class CorePingBuilder: TelemetryPingBuilder {
         
         let pingType = type(of: self).PingType
         
+        self.add(measurement: ClientIdMeasurement(storage: storage))
         self.add(measurement: SequenceMeasurement(storage: storage, pingType: pingType))
         self.add(measurement: LocaleMeasurement())
         self.add(measurement: OperatingSystemMeasurement())
@@ -107,6 +110,7 @@ public class CorePingBuilder: TelemetryPingBuilder {
         self.add(measurement: ProfileDateMeasurement(configuration: configuration))
         self.add(measurement: CreatedMeasurement())
         self.add(measurement: TimezoneOffsetMeasurement())
+        self.add(measurement: VersionMeasurement(version: type(of: self).Version))
         self.add(measurement: self.sessionCountMeasurement)
         self.add(measurement: self.sessionDurationMeasurement)
         self.add(measurement: self.defaultSearchMeasurement)

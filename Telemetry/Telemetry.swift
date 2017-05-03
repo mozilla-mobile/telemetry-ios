@@ -78,7 +78,7 @@ public class Telemetry {
         
         var backgroundTask: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
         backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "MozTelemetryUpload") {
-            // XXX: Clean up unfinished tasks
+            // XXX: Clean up unfinished tasks?
             
             UIApplication.shared.endBackgroundTask(backgroundTask)
             backgroundTask = UIBackgroundTaskInvalid
