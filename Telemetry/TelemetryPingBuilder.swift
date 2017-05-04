@@ -113,13 +113,23 @@ public class CorePingBuilder: TelemetryPingBuilder {
         self.add(measurement: self.searchesMeasurement)
     }
     
-    public func startSession() throws {
-        try sessionDurationMeasurement.start()
+    public func startSession() {
+        do {
+            try sessionDurationMeasurement.start()
+        } catch {
+            print("Unable to start session because it is already started")
+            return
+        }
+
         sessionCountMeasurement.increment()
     }
     
-    public func endSession() throws {
-        try sessionDurationMeasurement.end()
+    public func endSession() {
+        do {
+            try sessionDurationMeasurement.end()
+        } catch {
+            print("Unable to end session because it has not been started")
+        }
     }
     
     public func search(location: SearchesMeasurement.SearchLocation, searchEngine: String) {

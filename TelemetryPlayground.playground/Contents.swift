@@ -23,28 +23,28 @@ Telemetry.default.add(pingBuilderType: FocusEventPingBuilder.self)
 /**
  * Record usage
  */
-try! Telemetry.default.recordSessionStart()
+Telemetry.default.recordSessionStart()
 
 sleep(1)
 
-try! Telemetry.default.recordEvent(TelemetryEvent(category: "action", method: "type_url", object: "search_bar", value: nil))
-try! Telemetry.default.recordEvent(TelemetryEvent(category: "action", method: "type_url", object: "search_bar", value: nil))
-try! Telemetry.default.recordEvent(TelemetryEvent(category: "action", method: "type_url", object: "search_bar", value: nil))
+Telemetry.default.recordEvent(TelemetryEvent(category: "action", method: "type_url", object: "search_bar", value: nil))
+Telemetry.default.recordEvent(TelemetryEvent(category: "action", method: "type_url", object: "search_bar", value: nil))
+Telemetry.default.recordEvent(TelemetryEvent(category: "action", method: "type_url", object: "search_bar", value: nil))
 
-try! Telemetry.default.recordSearch(location: .actionBar, searchEngine: "bing")
-try! Telemetry.default.recordSearch(location: .listItem, searchEngine: "google")
-try! Telemetry.default.recordSearch(location: .listItem, searchEngine: "google")
-try! Telemetry.default.recordSearch(location: .suggestion, searchEngine: "yahoo")
-try! Telemetry.default.recordSearch(location: .suggestion, searchEngine: "yahoo")
-try! Telemetry.default.recordSearch(location: .suggestion, searchEngine: "yahoo")
+Telemetry.default.recordSearch(location: .actionBar, searchEngine: "bing")
+Telemetry.default.recordSearch(location: .listItem, searchEngine: "google")
+Telemetry.default.recordSearch(location: .listItem, searchEngine: "google")
+Telemetry.default.recordSearch(location: .suggestion, searchEngine: "yahoo")
+Telemetry.default.recordSearch(location: .suggestion, searchEngine: "yahoo")
+Telemetry.default.recordSearch(location: .suggestion, searchEngine: "yahoo")
 
-try! Telemetry.default.recordSessionEnd()
+Telemetry.default.recordSessionEnd()
 
 /**
  * Add ping for the current session to the queue
  */
-try! Telemetry.default.queue(pingType: CorePingBuilder.PingType)
-try! Telemetry.default.queue(pingType: FocusEventPingBuilder.PingType)
+Telemetry.default.queue(pingType: CorePingBuilder.PingType)
+Telemetry.default.queue(pingType: FocusEventPingBuilder.PingType)
 
 /**
  * Schedule queued pings for upload

@@ -62,9 +62,7 @@ public class TelemetryClient: NSObject {
         request.httpMethod = "POST"
         request.httpBody = data
 
-        print("TelemetryClient.upload() Sending URLRequest: \(request.httpMethod ?? "(GET)") \(request.debugDescription)")
-        print("TelemetryClient.upload() Request body: \(String(data: data, encoding: .utf8) ?? "(nil)")")
-        print("TelemetryClient.upload() Request headers: \(request.allHTTPHeaderFields!)")
+        print("\(request.httpMethod ?? "(GET)") \(request.debugDescription)\nRequest Body: \(String(data: data, encoding: .utf8) ?? "(nil)")")
 
         let session = URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: operationQueue)
         let task = session.dataTask(with: request)
@@ -74,20 +72,17 @@ public class TelemetryClient: NSObject {
 
 extension TelemetryClient: URLSessionDataDelegate {
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
-        print("URLSessionDataDelegate: didReceive response:\(response)")
         self.response = response
         completionHandler(URLSession.ResponseDisposition.allow)
     }
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        print("URLSessionDataDelegate: didCompleteWithError error:\(error?.localizedDescription ?? "(nil)")")
         if error != nil {
             completionHandler(error)
         }
     }
     
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        print("URLSessionDataDelegate: didReceive data:\(String(data: data, encoding: .utf8) ?? "(nil)")")
         completionHandler(nil)
     }
 }

@@ -35,13 +35,14 @@ public class Telemetry {
         pingBuilders[pingBuilderType.PingType] = pingBuilder
     }
     
-    public func queue(pingType: String) throws {
+    public func queue(pingType: String) {
         if !self.configuration.isCollectionEnabled {
             return
         }
         
         guard let pingBuilder = self.pingBuilders[pingType] else {
-            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(pingType)"])
+            print("This configuration does not contain a TelemetryPingBuilder for \(pingType)")
+            return
         }
         
         DispatchQueue.main.async {
@@ -75,37 +76,40 @@ public class Telemetry {
         }
     }
     
-    public func recordSessionStart() throws {
+    public func recordSessionStart() {
         if !configuration.isCollectionEnabled {
             return
         }
         
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
-            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)"])
+            print("This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)")
+            return
         }
         
-        try pingBuilder.startSession()
+        pingBuilder.startSession()
     }
     
-    public func recordSessionEnd() throws {
+    public func recordSessionEnd() {
         if !configuration.isCollectionEnabled {
             return
         }
 
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
-            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)"])
+            print("This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)")
+            return
         }
         
-        try pingBuilder.endSession()
+        pingBuilder.endSession()
     }
     
-    public func recordEvent(_ event: TelemetryEvent) throws {
+    public func recordEvent(_ event: TelemetryEvent) {
         if !self.configuration.isCollectionEnabled {
             return
         }
         
         guard let pingBuilder: FocusEventPingBuilder = self.pingBuilders[FocusEventPingBuilder.PingType] as? FocusEventPingBuilder else {
-            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(FocusEventPingBuilder.PingType)"])
+            print("This configuration does not contain a TelemetryPingBuilder for \(FocusEventPingBuilder.PingType)")
+            return
         }
         
         DispatchQueue.main.async {
@@ -120,13 +124,14 @@ public class Telemetry {
         }
     }
     
-    public func recordSearch(location: SearchesMeasurement.SearchLocation, searchEngine: String) throws {
+    public func recordSearch(location: SearchesMeasurement.SearchLocation, searchEngine: String) {
         if !configuration.isCollectionEnabled {
             return
         }
         
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
-            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)"])
+            print("This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)")
+            return
         }
         
         pingBuilder.search(location: location, searchEngine: searchEngine)
