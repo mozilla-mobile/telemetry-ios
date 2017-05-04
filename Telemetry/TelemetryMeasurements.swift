@@ -265,7 +265,6 @@ public class SessionCountMeasurement: TelemetryMeasurement {
     override func flush() -> Any? {
         let sessions: UIntMax = storage.get(valueFor: "sessions") as? UIntMax ?? 0
         
-        // XXX: Reset sessions count?
         storage.set(key: "sessions", value: 0)
         
         return sessions
@@ -284,24 +283,26 @@ public class SessionDurationMeasurement: TelemetryMeasurement {
     private let storage: TelemetryStorage
     
     private var startTime: Date?
-    private var lastDuration: UInt64
     
     init(storage: TelemetryStorage) {
         self.storage = storage
         
         self.startTime = nil
-        self.lastDuration = 0
         
         super.init(name: "durations")
     }
     
     override func flush() -> Any? {
-        let result = lastDuration
-
-        lastDuration = 0
-        // TODO: Clear stored duration?
+        let durations = storage.get(valueFor: "durations") as? UIntMax ?? 0
         
-        return result
+        storage.set(key: "durations", value: 0)
+        
+        // Reset the clock if we're in the middle of a session
+        if startTime != nil {
+            startTime = Date()
+        }
+        
+        return durations
     }
     
     public func start() throws {
@@ -316,32 +317,49 @@ public class SessionDurationMeasurement: TelemetryMeasurement {
         if startTime == nil {
             throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.SessionNotStarted, userInfo: [NSLocalizedDescriptionKey: "Session has not started"])
         }
-
-        lastDuration = UInt64(Date().timeIntervalSince(startTime!))
-        // TODO: Store lastDuration?
+        
+        var totalDurations = storage.get(valueFor: "durations") as? UIntMax ?? 0
+        
+        let duration = UIntMax(Date().timeIntervalSince(startTime!))
+        totalDurations += duration
+        
+        storage.set(key: "durations", value: totalDurations)
 
         startTime = nil
-    }
-}
-
-public class SettingsMeasurement: TelemetryMeasurement {
-    private let configuration: TelemetryConfiguration
-    
-    init(configuration: TelemetryConfiguration) {
-        self.configuration = configuration
-
-        super.init(name: "settings")
-    }
-    
-    override func flush() -> Any? {
-        // XXX: TODO
-        return [:]
     }
 }
 
 public class TimezoneOffsetMeasurement: StaticTelemetryMeasurement {
     init() {
         super.init(name: "tz", value: TimeZone.current.secondsFromGMT() / 60)
+    }
+}
+
+public class UserDefaultsMeasurement: TelemetryMeasurement {
+    private let configuration: TelemetryConfiguration
+    
+    init(configuration: TelemetryConfiguration) {
+        self.configuration = configuration
+        
+        super.init(name: "settings")
+    }
+    
+    override func flush() -> Any? {
+        var settings: [String : Any?] = [:]
+        
+        let userDefaults = configuration.userDefaultsSuiteName != nil ? UserDefaults(suiteName: configuration.userDefaultsSuiteName) : UserDefaults()
+        
+        for var measuredUserDefault in configuration.measuredUserDefaults {
+            if let key = measuredUserDefault["key"] as? String {
+                if let value = userDefaults?.object(forKey: key) {
+                    settings[key] = value
+                } else {
+                    settings[key] = measuredUserDefault["defaultValue"]
+                }
+            }
+        }
+
+        return settings
     }
 }
 

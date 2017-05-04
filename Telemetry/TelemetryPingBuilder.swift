@@ -174,7 +174,7 @@ public class FocusEventPingBuilder: TelemetryPingBuilder {
         self.add(measurement: OperatingSystemVersionMeasurement())
         self.add(measurement: CreatedTimestampMeasurement())
         self.add(measurement: TimezoneOffsetMeasurement())
-        self.add(measurement: SettingsMeasurement(configuration: configuration))
+        self.add(measurement: UserDefaultsMeasurement(configuration: configuration))
         self.add(measurement: VersionMeasurement(version: type(of: self).Version))
         
         self.add(measurement: self.eventsMeasurement)

@@ -28,7 +28,8 @@ public class TelemetryConfiguration {
     public var isCollectionEnabled: Bool
     public var isUploadEnabled: Bool
 
-    public var telemetryPreferences: [String : Any?]
+    public var userDefaultsSuiteName: String?
+    private(set) public var measuredUserDefaults: [[String : Any?]]
     
     public init() {
         let info = Bundle.main.infoDictionary
@@ -52,6 +53,19 @@ public class TelemetryConfiguration {
         self.isCollectionEnabled = true
         self.isUploadEnabled = true
         
-        self.telemetryPreferences = [:]
+        self.userDefaultsSuiteName = nil
+        self.measuredUserDefaults = []
+    }
+    
+    public func addMeasuredUserDefault(forKey key: String, withDefaultValue defaultValue: Any?) {
+        measuredUserDefaults.append(["key": key, "defaultValue": defaultValue])
+    }
+    
+    public func removeMeasuredUserDefault(forKey key: String) {
+        if let index = measuredUserDefaults.index(where: { (item: [String : Any?]) -> Bool in
+            return item["key"] as? String == key
+        }) {
+            measuredUserDefaults.remove(at: index)
+        }
     }
 }
