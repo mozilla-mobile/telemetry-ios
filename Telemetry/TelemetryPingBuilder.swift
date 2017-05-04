@@ -81,7 +81,6 @@ public class CorePingBuilder: TelemetryPingBuilder {
     
     private let sessionCountMeasurement: SessionCountMeasurement
     private let sessionDurationMeasurement: SessionDurationMeasurement
-    private let defaultSearchMeasurement: DefaultSearchMeasurement
     private let searchesMeasurement: SearchesMeasurement
 
     override public var uploadPath: String {
@@ -93,8 +92,7 @@ public class CorePingBuilder: TelemetryPingBuilder {
     required public init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
         self.sessionCountMeasurement = SessionCountMeasurement(storage: storage)
         self.sessionDurationMeasurement = SessionDurationMeasurement(storage: storage)
-        self.defaultSearchMeasurement = DefaultSearchMeasurement()
-        self.searchesMeasurement = SearchesMeasurement()
+        self.searchesMeasurement = SearchesMeasurement(storage: storage)
         
         super.init(configuration: configuration, storage: storage)
         
@@ -105,13 +103,13 @@ public class CorePingBuilder: TelemetryPingBuilder {
         self.add(measurement: OperatingSystemVersionMeasurement())
         self.add(measurement: DeviceMeasurement())
         self.add(measurement: ArchitectureMeasurement())
+        self.add(measurement: DefaultSearchMeasurement(configuration: configuration))
         self.add(measurement: ProfileDateMeasurement(configuration: configuration))
         self.add(measurement: CreatedDateMeasurement())
         self.add(measurement: TimezoneOffsetMeasurement())
         self.add(measurement: VersionMeasurement(version: type(of: self).Version))
         self.add(measurement: self.sessionCountMeasurement)
         self.add(measurement: self.sessionDurationMeasurement)
-        self.add(measurement: self.defaultSearchMeasurement)
         self.add(measurement: self.searchesMeasurement)
     }
     
@@ -124,11 +122,7 @@ public class CorePingBuilder: TelemetryPingBuilder {
         try sessionDurationMeasurement.end()
     }
     
-    public func changeDefaultSearch(searchEngine: String) {
-        defaultSearchMeasurement.change(searchEngine: searchEngine)
-    }
-    
-    public func search(location: String, searchEngine: String) {
+    public func search(location: SearchesMeasurement.SearchLocation, searchEngine: String) {
         searchesMeasurement.search(location: location, searchEngine: searchEngine)
     }
 }

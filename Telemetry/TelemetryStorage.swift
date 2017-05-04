@@ -24,8 +24,6 @@ public class TelemetryStorage {
             } else {
                 print("TelemetryStorage.get(): Value not found in \(name)-values.json for key '\(key)'")
             }
-        } else {
-            print("TelemetryStorage.get(): Unable to open \(name)-values.json")
         }
         
         return nil
@@ -55,8 +53,6 @@ public class TelemetryStorage {
             } else {
                 print("TelemetryStorage.dequeue(): Root array not found in \(name)-\(pingType).json")
             }
-        } else {
-            print("TelemetryStorage.dequeue(): Unable to open \(name)-\(pingType).json")
         }
         
         return nil
@@ -72,8 +68,6 @@ public class TelemetryStorage {
             } else {
                 print("TelemetryStorage.enqueue(): Root array not found in \(name)-\(ping.pingType).json")
             }
-        } else {
-            print("TelemetryStorage.enqueue(): Unable to open \(name)-\(ping.pingType).json")
         }
         
         save(object: [ping.toDictionary()], toFile: "\(name)-\(ping.pingType).json")
@@ -83,8 +77,6 @@ public class TelemetryStorage {
         do {
             let url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent(filename)
             let data = try Data(contentsOf: url)
-
-            print("Opened \(url)")
             
             return try JSONSerialization.jsonObject(with: data, options: [])
         } catch {

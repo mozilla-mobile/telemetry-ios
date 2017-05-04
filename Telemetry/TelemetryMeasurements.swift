@@ -93,20 +93,16 @@ public class CreatedTimestampMeasurement: StaticTelemetryMeasurement {
 }
 
 public class DefaultSearchMeasurement: TelemetryMeasurement {
-    private var searchEngine: String
-
-    init() {
-        self.searchEngine = "unknown"
+    private let configuration: TelemetryConfiguration
+    
+    init(configuration: TelemetryConfiguration) {
+        self.configuration = configuration
 
         super.init(name: "defaultSearch")
     }
     
     override func flush() -> Any? {
-        return searchEngine
-    }
-    
-    public func change(searchEngine: String) {
-        self.searchEngine = searchEngine
+        return self.configuration.defaultSearchEngineProvider
     }
 }
 
@@ -217,17 +213,38 @@ public class ProfileDateMeasurement: TelemetryMeasurement {
 }
 
 public class SearchesMeasurement: TelemetryMeasurement {
-    init() {
+    public enum SearchLocation: String {
+        case actionBar = "actionbar"
+        case listItem = "listitem"
+        case suggestion = "suggestion"
+    }
+    
+    private let storage: TelemetryStorage
+    
+    init(storage: TelemetryStorage) {
+        self.storage = storage
+
         super.init(name: "searches")
     }
     
     override func flush() -> Any? {
-        // XXX: TODO
-        return nil
+        let searches = storage.get(valueFor: "searches")
+
+        storage.set(key: "searches", value: nil)
+        
+        return searches
     }
     
-    public func search(location: String, searchEngine: String) {
-        // XXX: TODO
+    public func search(location: SearchLocation, searchEngine: String) {
+        var searches = storage.get(valueFor: "searches") as? [String : UInt] ?? [:]
+        let key = "\(location.rawValue).\(searchEngine)"
+        var count = searches[key] ?? 0
+        
+        count += 1
+
+        searches[key] = count
+        
+        storage.set(key: "searches", value: searches)
     }
 }
 

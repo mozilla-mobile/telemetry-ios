@@ -15,6 +15,7 @@ public class TelemetryConfiguration {
     public var updateChannel: String
     public var serverEndpoint: String
     public var userAgent: String
+    public var defaultSearchEngineProvider: String
     public var dataDirectory: FileManager.SearchPathDirectory
     public var profileFilename: String
     public var initialBackoffForUpload: Int
@@ -40,6 +41,7 @@ public class TelemetryConfiguration {
         self.updateChannel = TelemetryDefaults.UpdateChannel
         self.serverEndpoint = TelemetryDefaults.ServerEndpoint
         self.userAgent = TelemetryDefaults.UserAgent
+        self.defaultSearchEngineProvider = TelemetryDefaults.DefaultSearchEngineProvider
         self.dataDirectory = TelemetryDefaults.DataDirectory
         self.profileFilename = TelemetryDefaults.ProfileFilename
         self.initialBackoffForUpload = TelemetryDefaults.InitialBackoffForUpload
@@ -57,15 +59,7 @@ public class TelemetryConfiguration {
         self.measuredUserDefaults = []
     }
     
-    public func addMeasuredUserDefault(forKey key: String, withDefaultValue defaultValue: Any?) {
+    public func measureUserDefaultsSetting(forKey key: String, withDefaultValue defaultValue: Any?) {
         measuredUserDefaults.append(["key": key, "defaultValue": defaultValue])
-    }
-    
-    public func removeMeasuredUserDefault(forKey key: String) {
-        if let index = measuredUserDefaults.index(where: { (item: [String : Any?]) -> Bool in
-            return item["key"] as? String == key
-        }) {
-            measuredUserDefaults.remove(at: index)
-        }
     }
 }

@@ -54,27 +54,6 @@ public class Telemetry {
         }
     }
     
-    public func record(event: TelemetryEvent) throws {
-        if !self.configuration.isCollectionEnabled {
-            return
-        }
-        
-        guard let pingBuilder: FocusEventPingBuilder = self.pingBuilders[FocusEventPingBuilder.PingType] as? FocusEventPingBuilder else {
-            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(FocusEventPingBuilder.PingType)"])
-        }
-
-        DispatchQueue.main.async {
-            pingBuilder.add(event: event)
-
-            if pingBuilder.numberOfEvents < self.configuration.maximumNumberOfEventsPerPing {
-                return
-            }
-
-            let ping = pingBuilder.build()
-            self.storage.enqueue(ping: ping)
-        }
-    }
-    
     public func scheduleUpload(pingType: String) {
         if !self.configuration.isUploadEnabled {
             return
@@ -120,19 +99,28 @@ public class Telemetry {
         try pingBuilder.endSession()
     }
     
-    public func recordDefaultSearchProviderChange(searchEngine: String) throws {
-        if !configuration.isCollectionEnabled {
+    public func recordEvent(_ event: TelemetryEvent) throws {
+        if !self.configuration.isCollectionEnabled {
             return
         }
         
-        guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
-            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)"])
+        guard let pingBuilder: FocusEventPingBuilder = self.pingBuilders[FocusEventPingBuilder.PingType] as? FocusEventPingBuilder else {
+            throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.WrongConfiguration, userInfo: [NSLocalizedDescriptionKey: "This configuration does not contain a TelemetryPingBuilder for \(FocusEventPingBuilder.PingType)"])
         }
         
-        pingBuilder.changeDefaultSearch(searchEngine: searchEngine)
+        DispatchQueue.main.async {
+            pingBuilder.add(event: event)
+            
+            if pingBuilder.numberOfEvents < self.configuration.maximumNumberOfEventsPerPing {
+                return
+            }
+            
+            let ping = pingBuilder.build()
+            self.storage.enqueue(ping: ping)
+        }
     }
     
-    public func recordSearch(location: String, searchEngine: String) throws {
+    public func recordSearch(location: SearchesMeasurement.SearchLocation, searchEngine: String) throws {
         if !configuration.isCollectionEnabled {
             return
         }
@@ -143,15 +131,4 @@ public class Telemetry {
         
         pingBuilder.search(location: location, searchEngine: searchEngine)
     }
-    
-//    private func upload(completionHandler: @escaping (Data?, Error?)->Void = {_,_ in }) {
-//        client.send(request: URLRequest(url: URL(string: "https://incoming.telemetry.mozilla.org")!)) { (response, data, error) in
-//            if error != nil {
-//                completionHandler(nil, error)
-//                return
-//            }
-//
-//            completionHandler(data, nil)
-//        }
-//    }
 }
