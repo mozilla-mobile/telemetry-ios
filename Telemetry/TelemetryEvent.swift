@@ -27,7 +27,7 @@ public class TelemetryEvent {
     
     public let timestamp: UIntMax
     
-    private var extras: [String : String]
+    private var extras: [String : Any?]
     
     public convenience init(category: String, method: String, object: String?) {
         self.init(category: category, method: method, object: object, value: nil)
@@ -37,7 +37,7 @@ public class TelemetryEvent {
         self.init(category: category, method: method, object: object, value: value, timestamp: UIntMax(Date().timeIntervalSince(type(of: self).AppLaunchTimestamp) * 1000), extras: [:])
     }
     
-    private init(category: String, method: String, object: String?, value: String?, timestamp: UIntMax, extras: [String : String]) {
+    private init(category: String, method: String, object: String?, value: String?, timestamp: UIntMax, extras: [String : Any?]) {
         self.category = TelemetryUtils.truncate(string: category, maxLength: TelemetryEvent.MaxLengthCategory)!
         self.method = TelemetryUtils.truncate(string: method, maxLength: TelemetryEvent.MaxLengthMethod)!
         self.object = TelemetryUtils.truncate(string: object, maxLength: TelemetryEvent.MaxLengthObject)
@@ -64,7 +64,7 @@ public class TelemetryEvent {
                         event = TelemetryEvent(category: category, method: method, object: object, value: value, timestamp: timestamp, extras: [:])
                     }
                 } else if array.count >= 6 {
-                    if let value = array[4] as? String, let extras = array[5] as? [String : String] {
+                    if let value = array[4] as? String, let extras = array[5] as? [String : Any?] {
                         event = TelemetryEvent(category: category, method: method, object: object, value: value, timestamp: timestamp, extras: extras)
                     }
                 }
@@ -74,16 +74,23 @@ public class TelemetryEvent {
         return event
     }
 
-    public func addExtra(key: String, value: String) {
+    public func addExtra(key: String, value: Any?) {
         if extras.count >= TelemetryEvent.MaxNumberOfExtras {
             print("Exceeded maximum limit of \(TelemetryEvent.MaxNumberOfExtras) TelemetryEvent extras")
             return
         }
 
-        let truncatedKey = TelemetryUtils.truncate(string: key, maxLength: TelemetryEvent.MaxLengthExtraKey)
-        let truncatedValue = TelemetryUtils.truncate(string: value, maxLength: TelemetryEvent.MaxLengthExtraValue)
-        
-        extras[truncatedKey!] = truncatedValue
+        if let truncatedKey = TelemetryUtils.truncate(string: key, maxLength: TelemetryEvent.MaxLengthExtraKey) {
+            if value is String {
+                if let stringValue = value as? String {
+                    let truncatedValue = TelemetryUtils.truncate(string: stringValue, maxLength: TelemetryEvent.MaxLengthExtraValue)
+                    extras[truncatedKey] = truncatedValue
+                    return
+                }
+            } else {
+                extras[truncatedKey] = value
+            }
+        }
     }
 
     public func toArray() -> [Any?] {

@@ -78,11 +78,13 @@ extension TelemetryClient: URLSessionDataDelegate {
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if error != nil {
+            session.invalidateAndCancel()
             completionHandler(error)
         }
     }
     
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        session.finishTasksAndInvalidate()
         completionHandler(nil)
     }
 }
