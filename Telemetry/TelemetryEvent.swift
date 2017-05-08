@@ -29,6 +29,10 @@ public class TelemetryEvent {
     
     private var extras: [String : String]
     
+    public convenience init(category: String, method: String, object: String?) {
+        self.init(category: category, method: method, object: object, value: nil)
+    }
+    
     public convenience init(category: String, method: String, object: String?, value: String?) {
         self.init(category: category, method: method, object: object, value: value, timestamp: UIntMax(Date().timeIntervalSince(type(of: self).AppLaunchTimestamp) * 1000), extras: [:])
     }
