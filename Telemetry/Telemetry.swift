@@ -62,7 +62,7 @@ public class Telemetry {
         
         var backgroundTask: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
         backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "MozTelemetryUpload-\(pingType)") {
-            // XXX: Clean up unfinished tasks?
+            print("Background task 'MozTelemetryUpload-\(pingType)' is expiring")
             
             UIApplication.shared.endBackgroundTask(backgroundTask)
             backgroundTask = UIBackgroundTaskInvalid

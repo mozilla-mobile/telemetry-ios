@@ -9,30 +9,32 @@
 import Foundation
 
 public class TelemetryClient: NSObject {
+    private static let sessionConfiguration: URLSessionConfiguration = {
+        #if DEBUG
+            // Cannot intercept background HTTP request using OHHTTPStubs in test environment.
+            if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+                return URLSessionConfiguration.default
+            }
+        #endif
+        
+        return URLSessionConfiguration.background(withIdentifier: "MozTelemetry")
+    }()
+
     private let configuration: TelemetryConfiguration
 
-    private let sessionConfiguration: URLSessionConfiguration
     private let operationQueue: OperationQueue
-    
+
     fileprivate var completionHandler: (Error?) -> Void
-    
+
     fileprivate var response: URLResponse?
+    
+    lazy private var session: URLSession = URLSession(configuration: TelemetryClient.sessionConfiguration, delegate: self, delegateQueue: self.operationQueue)
     
     public init(configuration: TelemetryConfiguration) {
         self.configuration = configuration
 
-        #if DEBUG
-            // Cannot intercept background HTTP request using OHHTTPStubs in test environment.
-            if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
-                self.sessionConfiguration = URLSessionConfiguration.default
-            } else {
-                self.sessionConfiguration = URLSessionConfiguration.background(withIdentifier: "MozTelemetry")
-            }
-        #else
-            self.sessionConfiguration = URLSessionConfiguration.background(withIdentifier: "MozTelemetry")
-        #endif
-
         self.operationQueue = OperationQueue()
+        operationQueue.maxConcurrentOperationCount = 1
         
         self.completionHandler = {_ in}
     }
@@ -64,7 +66,6 @@ public class TelemetryClient: NSObject {
 
         print("\(request.httpMethod ?? "(GET)") \(request.debugDescription)\nRequest Body: \(String(data: data, encoding: .utf8) ?? "(nil)")")
 
-        let session = URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: operationQueue)
         let task = session.dataTask(with: request)
         task.resume()
     }
@@ -78,13 +79,11 @@ extension TelemetryClient: URLSessionDataDelegate {
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if error != nil {
-            session.invalidateAndCancel()
             completionHandler(error)
         }
     }
     
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        session.finishTasksAndInvalidate()
         completionHandler(nil)
     }
 }
