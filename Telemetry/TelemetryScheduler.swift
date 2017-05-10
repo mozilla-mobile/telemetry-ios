@@ -25,25 +25,16 @@ public class TelemetryScheduler {
         if hasReachedDailyUploadLimit(forPingType: pingType) {
             return
         }
-
-        let dispatchGroup = DispatchGroup()
         
         while let ping = storage.dequeue(pingType: pingType) {
-            dispatchGroup.enter()
-
             client.upload(ping: ping) { (error) in
                 if error != nil {
                     print("Error uploading TelemetryPing: \(error!.localizedDescription)")
                 }
-
-                dispatchGroup.leave()
             }
         }
         
-        dispatchGroup.notify(queue: DispatchQueue.main) { 
-            print("Done uploading!!")
-            completionHandler()
-        }
+        completionHandler()
     }
     
     private func hasReachedDailyUploadLimit(forPingType pingType: String) -> Bool {

@@ -88,11 +88,16 @@ public class TelemetryStorage {
     
     private func save(object: Any, toFile filename: String) {
         do {
-            let url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent(filename)
+            var url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent(filename)
             
             let jsonData = try JSONSerialization.data(withJSONObject: object, options: .prettyPrinted)
             if let jsonString = String(data: jsonData, encoding: .utf8) {
                 try jsonString.write(toFile: url.path, atomically: true, encoding: .utf8)
+                
+                var resourceValues = URLResourceValues()
+                resourceValues.isExcludedFromBackup = true
+
+                try url.setResourceValues(resourceValues)
             } else {
                 print("ERROR: Unable to generate JSON data")
             }
