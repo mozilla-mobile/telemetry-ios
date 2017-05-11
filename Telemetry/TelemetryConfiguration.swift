@@ -62,4 +62,8 @@ public class TelemetryConfiguration {
     public func measureUserDefaultsSetting(forKey key: String, withDefaultValue defaultValue: Any?) {
         measuredUserDefaults.append(["key": key, "defaultValue": defaultValue])
     }
+    
+    public func measureUserDefaultsSetting<T : RawRepresentable>(forKey key: T, withDefaultValue defaultValue: Any?) where T.RawValue == String {
+        measureUserDefaultsSetting(forKey: key.rawValue, withDefaultValue: defaultValue)
+    }
 }
