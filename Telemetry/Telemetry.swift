@@ -124,6 +124,18 @@ public class Telemetry {
         }
     }
     
+    public func recordEvent(category: String, method: String, object: String) {
+        recordEvent(TelemetryEvent(category: category, method: method, object: object))
+    }
+    
+    public func recordEvent(category: String, method: String, object: String, value: String?) {
+        recordEvent(TelemetryEvent(category: category, method: method, object: object, value: value))
+    }
+    
+    public func recordEvent(category: String, method: String, object: String, value: String?, extras: [String : Any?]?) {
+        recordEvent(TelemetryEvent(category: category, method: method, object: object, value: value, extras: extras))
+    }
+    
     public func recordSearch(location: SearchesMeasurement.SearchLocation, searchEngine: String) {
         if !configuration.isCollectionEnabled {
             return

@@ -27,9 +27,9 @@ Telemetry.default.recordSessionStart()
 
 sleep(1)
 
-Telemetry.default.recordEvent(TelemetryEvent(category: "action", method: "type_url", object: "search_bar", value: nil))
-Telemetry.default.recordEvent(TelemetryEvent(category: "action", method: "type_url", object: "search_bar", value: nil))
-Telemetry.default.recordEvent(TelemetryEvent(category: "action", method: "type_url", object: "search_bar", value: nil))
+Telemetry.default.recordEvent(category: "action", method: "type_url", object: "search_bar")
+Telemetry.default.recordEvent(category: "action", method: "type_url", object: "search_bar")
+Telemetry.default.recordEvent(category: "action", method: "type_url", object: "search_bar")
 
 Telemetry.default.recordSearch(location: .actionBar, searchEngine: "bing")
 Telemetry.default.recordSearch(location: .listItem, searchEngine: "google")
@@ -49,25 +49,25 @@ Telemetry.default.queue(pingType: FocusEventPingBuilder.PingType)
 /**
  * Schedule queued pings for upload
  */
-Telemetry.default.scheduleUpload(pingType: CorePingBuilder.PingType)
-Telemetry.default.scheduleUpload(pingType: FocusEventPingBuilder.PingType)
+//Telemetry.default.scheduleUpload(pingType: CorePingBuilder.PingType)
+//Telemetry.default.scheduleUpload(pingType: FocusEventPingBuilder.PingType)
 
 /**
  * Test code to retrieve queued pings from storage
  */
-//DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2)) {
-//    let storage = TelemetryStorage(name: "MozTelemetry", configuration: Telemetry.default.configuration)
-//    
-//    print("Core Pings\n================")
-//    while let ping = storage.dequeue(pingType: CorePingBuilder.PingType) {
-//        print(String(data: ping.measurementsJSON()!, encoding: .utf8)!)
-//    }
-//    
-//    print("FocusEvent Pings\n================")
-//    while let ping = storage.dequeue(pingType: FocusEventPingBuilder.PingType) {
-//        print(String(data: ping.measurementsJSON()!, encoding: .utf8)!)
-//    }
-//}
+DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2)) {
+    let storage = TelemetryStorage(name: "MozTelemetry", configuration: Telemetry.default.configuration)
+    
+    print("Core Pings\n================")
+    while let ping = storage.dequeue(pingType: CorePingBuilder.PingType) {
+        print(String(data: ping.measurementsJSON()!, encoding: .utf8)!)
+    }
+    
+    print("FocusEvent Pings\n================")
+    while let ping = storage.dequeue(pingType: FocusEventPingBuilder.PingType) {
+        print(String(data: ping.measurementsJSON()!, encoding: .utf8)!)
+    }
+}
 
 // Playground needs indefinite execution for async callbacks to function
 PlaygroundPage.current.needsIndefiniteExecution = true

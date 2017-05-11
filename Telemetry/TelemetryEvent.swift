@@ -22,30 +22,31 @@ public class TelemetryEvent {
     
     public let category: String
     public let method: String
-    public let object: String?
+    public let object: String
     public let value: String?
     
     public let timestamp: UIntMax
     
     private var extras: [String : Any?]
     
-    public convenience init(category: String, method: String, object: String?) {
-        self.init(category: category, method: method, object: object, value: nil)
+    public convenience init(category: String, method: String, object: String, value: String? = nil, extras: [String : Any?]? = nil) {
+        self.init(category: category, method: method, object: object, value: value, timestamp: UIntMax(Date().timeIntervalSince(type(of: self).AppLaunchTimestamp) * 1000), extras: extras ?? [:])
     }
     
-    public convenience init(category: String, method: String, object: String?, value: String?) {
-        self.init(category: category, method: method, object: object, value: value, timestamp: UIntMax(Date().timeIntervalSince(type(of: self).AppLaunchTimestamp) * 1000), extras: [:])
-    }
-    
-    private init(category: String, method: String, object: String?, value: String?, timestamp: UIntMax, extras: [String : Any?]) {
+    private init(category: String, method: String, object: String, value: String?, timestamp: UIntMax, extras: [String : Any?]) {
         self.category = TelemetryUtils.truncate(string: category, maxLength: TelemetryEvent.MaxLengthCategory)!
         self.method = TelemetryUtils.truncate(string: method, maxLength: TelemetryEvent.MaxLengthMethod)!
-        self.object = TelemetryUtils.truncate(string: object, maxLength: TelemetryEvent.MaxLengthObject)
+        self.object = TelemetryUtils.truncate(string: object, maxLength: TelemetryEvent.MaxLengthObject)!
         self.value = TelemetryUtils.truncate(string: value, maxLength: TelemetryEvent.MaxLengthValue)
 
         self.timestamp = timestamp
         
-        self.extras = extras
+        if extras.count > TelemetryEvent.MaxNumberOfExtras {
+            print("The number of TelemetryEvent extras will be limited to \(TelemetryEvent.MaxNumberOfExtras)")
+            self.extras = TelemetryEvent.limitNumberOfItems(inDictionary: extras, to: TelemetryEvent.MaxNumberOfExtras)
+        } else {
+            self.extras = extras
+        }
     }
     
     public static func from(array: [Any?]) -> TelemetryEvent? {
@@ -74,6 +75,20 @@ public class TelemetryEvent {
         return event
     }
 
+    private static func limitNumberOfItems(inDictionary dictionary: [String : Any?], to numberOfItems: Int) -> [String : Any?] {
+        var result: [String : Any?] = [:]
+        
+        for (index, item) in dictionary.enumerated() {
+            if index >= numberOfItems {
+                break
+            }
+            
+            result[item.key] = item.value
+        }
+        
+        return result
+    }
+    
     public func addExtra(key: String, value: Any?) {
         if extras.count >= TelemetryEvent.MaxNumberOfExtras {
             print("Exceeded maximum limit of \(TelemetryEvent.MaxNumberOfExtras) TelemetryEvent extras")
