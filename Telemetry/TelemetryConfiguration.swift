@@ -16,11 +16,11 @@ public class TelemetryConfiguration {
     public var serverEndpoint: String
     public var userAgent: String
     public var defaultSearchEngineProvider: String
+    public var sessionConfigurationBackgroundIdentifier: String
     public var dataDirectory: FileManager.SearchPathDirectory
     public var profileFilename: String
-    public var initialBackoffForUpload: Int
-    public var connectTimeout: Int
-    public var readTimeout: Int
+    public var timeoutIntervalForRequest: TimeInterval
+    public var timeoutIntervalForResource: TimeInterval
     public var minimumEventsForUpload: Int
     public var maximumNumberOfEventsPerPing: Int
     public var maximumNumberOfPingsPerType: Int
@@ -42,11 +42,11 @@ public class TelemetryConfiguration {
         self.serverEndpoint = TelemetryDefaults.ServerEndpoint
         self.userAgent = TelemetryDefaults.UserAgent
         self.defaultSearchEngineProvider = TelemetryDefaults.DefaultSearchEngineProvider
+        self.sessionConfigurationBackgroundIdentifier = TelemetryDefaults.SessionConfigurationBackgroundIdentifier
         self.dataDirectory = TelemetryDefaults.DataDirectory
         self.profileFilename = TelemetryDefaults.ProfileFilename
-        self.initialBackoffForUpload = TelemetryDefaults.InitialBackoffForUpload
-        self.connectTimeout = TelemetryDefaults.ConnectTimeout
-        self.readTimeout = TelemetryDefaults.ReadTimeout
+        self.timeoutIntervalForRequest = TelemetryDefaults.TimeoutIntervalForRequest
+        self.timeoutIntervalForResource = TelemetryDefaults.TimeoutIntervalForResource
         self.minimumEventsForUpload = TelemetryDefaults.MinNumberOfEventsPerUpload
         self.maximumNumberOfEventsPerPing = TelemetryDefaults.MaxNumberOfEventsPerPing
         self.maximumNumberOfPingsPerType = TelemetryDefaults.MaxNumberOfPingsPerType

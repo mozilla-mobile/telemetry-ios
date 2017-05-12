@@ -63,6 +63,10 @@ public class TelemetryStorage {
             if var dicts = json as? [[String : Any]] {
                 dicts.append(ping.toDictionary())
                 
+                if dicts.count > configuration.maximumNumberOfPingsPerType {
+                    dicts.removeFirst(dicts.count - configuration.maximumNumberOfPingsPerType)
+                }
+                
                 save(object: dicts, toFile: "\(name)-\(ping.pingType).json")
                 return
             } else {

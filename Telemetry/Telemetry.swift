@@ -18,7 +18,7 @@ public class Telemetry {
     private var pingBuilders: [String : TelemetryPingBuilder]
     
     public static let `default`: Telemetry = {
-        return Telemetry(storageName: "MozTelemetry")
+        return Telemetry(storageName: "MozTelemetry-Default")
     }()
     
     public init(storageName: String) {

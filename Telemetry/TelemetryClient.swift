@@ -9,17 +9,6 @@
 import Foundation
 
 public class TelemetryClient: NSObject {
-    private static let sessionConfiguration: URLSessionConfiguration = {
-        #if DEBUG
-            // Cannot intercept background HTTP request using OHHTTPStubs in test environment.
-            if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
-                return URLSessionConfiguration.default
-            }
-        #endif
-        
-        return URLSessionConfiguration.background(withIdentifier: "MozTelemetry")
-    }()
-
     private let configuration: TelemetryConfiguration
 
     private let operationQueue: OperationQueue
@@ -28,7 +17,25 @@ public class TelemetryClient: NSObject {
 
     fileprivate var response: URLResponse?
     
-    lazy private var session: URLSession = URLSession(configuration: TelemetryClient.sessionConfiguration, delegate: self, delegateQueue: self.operationQueue)
+    lazy private var session: URLSession = {
+        var sessionConfiguration: URLSessionConfiguration
+
+        #if DEBUG
+            // Cannot intercept background HTTP request using OHHTTPStubs in test environment.
+            if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+                sessionConfiguration = URLSessionConfiguration.default
+            } else {
+                sessionConfiguration = URLSessionConfiguration.background(withIdentifier: self.configuration.sessionConfigurationBackgroundIdentifier)
+            }
+        #else
+            sessionConfiguration = URLSessionConfiguration.background(withIdentifier: self.configuration.sessionConfigurationBackgroundIdentifier)
+        #endif
+
+        sessionConfiguration.timeoutIntervalForRequest = self.configuration.timeoutIntervalForRequest
+        sessionConfiguration.timeoutIntervalForResource = self.configuration.timeoutIntervalForResource
+
+        return URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: self.operationQueue)
+    }()
     
     public init(configuration: TelemetryConfiguration) {
         self.configuration = configuration
