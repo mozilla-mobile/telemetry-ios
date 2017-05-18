@@ -12,22 +12,24 @@ public class TelemetryConfiguration {
     public var appName: String
     public var appVersion: String
     public var buildId: String
-    public var updateChannel: String
-    public var serverEndpoint: String
-    public var userAgent: String
-    public var defaultSearchEngineProvider: String
-    public var sessionConfigurationBackgroundIdentifier: String
-    public var dataDirectory: FileManager.SearchPathDirectory
-    public var profileFilename: String
-    public var timeoutIntervalForRequest: TimeInterval
-    public var timeoutIntervalForResource: TimeInterval
-    public var minimumEventsForUpload: Int
-    public var maximumNumberOfEventsPerPing: Int
-    public var maximumNumberOfPingsPerType: Int
-    public var maximumNumberOfPingUploadsPerDay: Int
+    
+    public var updateChannel = TelemetryDefaults.UpdateChannel
+    public var serverEndpoint = TelemetryDefaults.ServerEndpoint
+    public var userAgent = TelemetryDefaults.UserAgent
+    public var defaultSearchEngineProvider = TelemetryDefaults.DefaultSearchEngineProvider
+    public var sessionConfigurationBackgroundIdentifier = TelemetryDefaults.SessionConfigurationBackgroundIdentifier
+    public var dataDirectory = TelemetryDefaults.DataDirectory
+    public var profileFilename = TelemetryDefaults.ProfileFilename
+    public var timeoutIntervalForRequest = TelemetryDefaults.TimeoutIntervalForRequest
+    public var timeoutIntervalForResource = TelemetryDefaults.TimeoutIntervalForResource
+    public var minimumEventsForUpload = TelemetryDefaults.MinNumberOfEventsPerUpload
+    public var maximumNumberOfEventsPerPing = TelemetryDefaults.MaxNumberOfEventsPerPing
+    public var maximumNumberOfPingsPerType = TelemetryDefaults.MaxNumberOfPingsPerType
+    public var maximumNumberOfPingUploadsPerDay = TelemetryDefaults.MaxNumberOfPingUploadsPerDay
+    public var maxNumberOfUploadAttemptsPerPing = TelemetryDefaults.MaxNumberOfUploadAttemptsPerPing
 
-    public var isCollectionEnabled: Bool
-    public var isUploadEnabled: Bool
+    public var isCollectionEnabled = true
+    public var isUploadEnabled = true
 
     public var userDefaultsSuiteName: String?
     private(set) public var measuredUserDefaults: [[String : Any?]]
@@ -38,22 +40,6 @@ public class TelemetryConfiguration {
         self.appName = info?["CFBundleDisplayName"] as? String ?? TelemetryDefaults.AppName
         self.appVersion = info?["CFBundleShortVersionString"] as? String ?? TelemetryDefaults.AppVersion
         self.buildId = info?["CFBundleVersionKey"] as? String ?? TelemetryDefaults.BuildId
-        self.updateChannel = TelemetryDefaults.UpdateChannel
-        self.serverEndpoint = TelemetryDefaults.ServerEndpoint
-        self.userAgent = TelemetryDefaults.UserAgent
-        self.defaultSearchEngineProvider = TelemetryDefaults.DefaultSearchEngineProvider
-        self.sessionConfigurationBackgroundIdentifier = TelemetryDefaults.SessionConfigurationBackgroundIdentifier
-        self.dataDirectory = TelemetryDefaults.DataDirectory
-        self.profileFilename = TelemetryDefaults.ProfileFilename
-        self.timeoutIntervalForRequest = TelemetryDefaults.TimeoutIntervalForRequest
-        self.timeoutIntervalForResource = TelemetryDefaults.TimeoutIntervalForResource
-        self.minimumEventsForUpload = TelemetryDefaults.MinNumberOfEventsPerUpload
-        self.maximumNumberOfEventsPerPing = TelemetryDefaults.MaxNumberOfEventsPerPing
-        self.maximumNumberOfPingsPerType = TelemetryDefaults.MaxNumberOfPingsPerType
-        self.maximumNumberOfPingUploadsPerDay = TelemetryDefaults.MaxNumberOfPingUploadsPerDay
-        
-        self.isCollectionEnabled = true
-        self.isUploadEnabled = true
         
         self.userDefaultsSuiteName = nil
         self.measuredUserDefaults = []

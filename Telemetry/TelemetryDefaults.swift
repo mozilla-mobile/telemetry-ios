@@ -25,4 +25,5 @@ public class TelemetryDefaults {
     public static let MaxNumberOfEventsPerPing = 500
     public static let MaxNumberOfPingsPerType = 40
     public static let MaxNumberOfPingUploadsPerDay = 100
+    public static let MaxNumberOfUploadAttemptsPerPing = 10
 }

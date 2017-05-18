@@ -14,6 +14,8 @@ public class TelemetryPing {
     let uploadPath: String
     let measurements: [String : Any?]
     let timestamp: TimeInterval
+    
+    var failedUploadAttempts: UInt
 
     init(pingType: String, documentId: String, uploadPath: String, measurements: [String : Any?], timestamp: TimeInterval) {
         self.pingType = pingType
@@ -21,6 +23,8 @@ public class TelemetryPing {
         self.uploadPath = uploadPath
         self.measurements = measurements
         self.timestamp = timestamp
+        
+        self.failedUploadAttempts = 0
     }
     
     public static func from(dictionary: [String : Any]) -> TelemetryPing? {

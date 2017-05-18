@@ -10,7 +10,7 @@ import Telemetry
 let configuration = Telemetry.default.configuration
 configuration.appName = "Focus"
 configuration.appVersion = "3.3"
-configuration.updateChannel = "debug"
+configuration.updateChannel = "release"
 configuration.buildId = "1"
 configuration.defaultSearchEngineProvider = "google"
 

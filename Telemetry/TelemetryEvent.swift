@@ -27,13 +27,19 @@ public class TelemetryEvent {
     
     public let timestamp: UIntMax
     
-    private var extras: [String : Any?]
+    private var extras: [String : String]
     
     public convenience init(category: String, method: String, object: String, value: String? = nil, extras: [String : Any?]? = nil) {
-        self.init(category: category, method: method, object: object, value: value, timestamp: UIntMax(Date().timeIntervalSince(type(of: self).AppLaunchTimestamp) * 1000), extras: extras ?? [:])
+        self.init(category: category, method: method, object: object, value: value, timestamp: UIntMax(Date().timeIntervalSince(type(of: self).AppLaunchTimestamp) * 1000))
+        
+        if let extras = extras {
+            for (key, value) in extras {
+                self.addExtra(key: key, value: value)
+            }
+        }
     }
     
-    private init(category: String, method: String, object: String, value: String?, timestamp: UIntMax, extras: [String : Any?]) {
+    private init(category: String, method: String, object: String, value: String?, timestamp: UIntMax) {
         self.category = TelemetryUtils.truncate(string: category, maxLength: TelemetryEvent.MaxLengthCategory)!
         self.method = TelemetryUtils.truncate(string: method, maxLength: TelemetryEvent.MaxLengthMethod)!
         self.object = TelemetryUtils.truncate(string: object, maxLength: TelemetryEvent.MaxLengthObject)!
@@ -41,42 +47,11 @@ public class TelemetryEvent {
 
         self.timestamp = timestamp
         
-        if extras.count > TelemetryEvent.MaxNumberOfExtras {
-            print("The number of TelemetryEvent extras will be limited to \(TelemetryEvent.MaxNumberOfExtras)")
-            self.extras = TelemetryEvent.limitNumberOfItems(inDictionary: extras, to: TelemetryEvent.MaxNumberOfExtras)
-        } else {
-            self.extras = extras
-        }
-    }
-    
-    public static func from(array: [Any?]) -> TelemetryEvent? {
-        var event: TelemetryEvent? = nil
-
-        if array.count >= 4 {
-            if let timestamp = array[0] as? UIntMax,
-                let category = array[1] as? String,
-                let method = array[2] as? String,
-                let object = array[3] as? String {
-                
-                if array.count == 4 {
-                    event = TelemetryEvent(category: category, method: method, object: object, value: nil, timestamp: timestamp, extras: [:])
-                } else if array.count == 5 {
-                    if let value = array[4] as? String {
-                        event = TelemetryEvent(category: category, method: method, object: object, value: value, timestamp: timestamp, extras: [:])
-                    }
-                } else if array.count >= 6 {
-                    if let value = array[4] as? String, let extras = array[5] as? [String : Any?] {
-                        event = TelemetryEvent(category: category, method: method, object: object, value: value, timestamp: timestamp, extras: extras)
-                    }
-                }
-            }
-        }
-        
-        return event
+        self.extras = [:]
     }
 
-    private static func limitNumberOfItems(inDictionary dictionary: [String : Any?], to numberOfItems: Int) -> [String : Any?] {
-        var result: [String : Any?] = [:]
+    private static func limitNumberOfItems(inDictionary dictionary: [String : String], to numberOfItems: Int) -> [String : String] {
+        var result: [String : String] = [:]
         
         for (index, item) in dictionary.enumerated() {
             if index >= numberOfItems {
@@ -96,15 +71,8 @@ public class TelemetryEvent {
         }
 
         if let truncatedKey = TelemetryUtils.truncate(string: key, maxLength: TelemetryEvent.MaxLengthExtraKey) {
-            if value is String {
-                if let stringValue = value as? String {
-                    let truncatedValue = TelemetryUtils.truncate(string: stringValue, maxLength: TelemetryEvent.MaxLengthExtraValue)
-                    extras[truncatedKey] = truncatedValue
-                    return
-                }
-            } else {
-                extras[truncatedKey] = value
-            }
+            let truncatedValue = TelemetryUtils.truncate(string: TelemetryUtils.asString(value), maxLength: TelemetryEvent.MaxLengthExtraValue)
+            extras[truncatedKey] = truncatedValue
         }
     }
 

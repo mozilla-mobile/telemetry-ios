@@ -369,9 +369,9 @@ public class UserDefaultsMeasurement: TelemetryMeasurement {
         for var measuredUserDefault in configuration.measuredUserDefaults {
             if let key = measuredUserDefault["key"] as? String {
                 if let value = userDefaults?.object(forKey: key) {
-                    settings[key] = value
+                    settings[key] = TelemetryUtils.asString(value)
                 } else {
-                    settings[key] = measuredUserDefault["defaultValue"]
+                    settings[key] = TelemetryUtils.asString(measuredUserDefault["defaultValue"] ?? nil)
                 }
             }
         }

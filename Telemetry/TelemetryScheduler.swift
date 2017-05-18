@@ -27,6 +27,9 @@ public class TelemetryScheduler {
                 client.upload(ping: ping) { (error) in
                     if error != nil {
                         print("Error uploading TelemetryPing: \(error!.localizedDescription)")
+
+                        ping.failedUploadAttempts += 1
+                        self.storage.enqueue(ping: ping)
                     }
                 }
                 
