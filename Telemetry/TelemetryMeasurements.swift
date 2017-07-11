@@ -163,7 +163,15 @@ public class ExperimentMeasurement: StaticTelemetryMeasurement {
 
 public class LocaleMeasurement: StaticTelemetryMeasurement {
     init() {
-        super.init(name: "locale", value: "\(NSLocale.current.languageCode!)-\(NSLocale.current.regionCode!)")
+        if NSLocale.current.languageCode == nil {
+            super.init(name: "locale", value: "??")
+        } else {
+            if NSLocale.current.regionCode == nil {
+                super.init(name: "locale", value: NSLocale.current.languageCode!)
+            } else {
+                super.init(name: "locale", value: "\(NSLocale.current.languageCode!)-\(NSLocale.current.regionCode!)")
+            }
+        }
     }
 }
 
