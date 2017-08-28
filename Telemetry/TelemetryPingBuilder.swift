@@ -16,8 +16,6 @@ public class TelemetryPingBuilder {
     public class var Version: Int {
         return -1
     }
-
-    public let documentId: String
     
     private(set) public var measurements: [TelemetryMeasurement]
 
@@ -28,20 +26,7 @@ public class TelemetryPingBuilder {
         get { return true }
     }
     
-    public var uploadPath: String {
-        get {
-            let pingType = type(of: self).PingType
-            let appName = configuration.appName
-            let appVersion = configuration.appVersion
-            let updateChannel = configuration.updateChannel
-            let buildId = configuration.buildId
-            return "/submit/telemetry/\(documentId)/\(pingType)/\(appName)/\(appVersion)/\(updateChannel)/\(buildId)"
-        }
-    }
-    
     required public init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
-        self.documentId = UUID.init().uuidString
-        
         self.measurements = []
         
         self.configuration = configuration
@@ -54,7 +39,18 @@ public class TelemetryPingBuilder {
     
     public func build() -> TelemetryPing {
         let pingType = type(of: self).PingType
+        let documentId = UUID.init().uuidString
+        let uploadPath = getUploadPath(withDocumentId: documentId)
         return TelemetryPing(pingType: pingType, documentId: documentId, uploadPath: uploadPath, measurements: flushMeasurements(), timestamp: Date().timeIntervalSince1970)
+    }
+    
+    public func getUploadPath(withDocumentId documentId: String) -> String {
+        let pingType = type(of: self).PingType
+        let appName = configuration.appName
+        let appVersion = configuration.appVersion
+        let updateChannel = configuration.updateChannel
+        let buildId = configuration.buildId
+        return "/submit/telemetry/\(documentId)/\(pingType)/\(appName)/\(appVersion)/\(updateChannel)/\(buildId)"
     }
     
     private func flushMeasurements() -> [String : Any?] {
@@ -82,12 +78,6 @@ public class CorePingBuilder: TelemetryPingBuilder {
     private let sessionCountMeasurement: SessionCountMeasurement
     private let sessionDurationMeasurement: SessionDurationMeasurement
     private let searchesMeasurement: SearchesMeasurement
-
-    override public var uploadPath: String {
-        get {
-            return super.uploadPath + "?v=4"
-        }
-    }
     
     required public init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
         self.sessionCountMeasurement = SessionCountMeasurement(storage: storage)
@@ -112,7 +102,11 @@ public class CorePingBuilder: TelemetryPingBuilder {
         self.add(measurement: self.sessionDurationMeasurement)
         self.add(measurement: self.searchesMeasurement)
     }
-    
+
+    override public func getUploadPath(withDocumentId documentId: String) -> String {
+        return super.getUploadPath(withDocumentId: documentId) + "?v=4"
+    }
+
     public func startSession() {
         do {
             try sessionDurationMeasurement.start()
@@ -160,12 +154,6 @@ public class FocusEventPingBuilder: TelemetryPingBuilder {
         }
     }
     
-    override public var uploadPath: String {
-        get {
-            return super.uploadPath + "?v=4"
-        }
-    }
-    
     required public init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
         self.eventsMeasurement = EventsMeasurement(storage: storage, pingType: type(of: self).PingType)
         
@@ -182,6 +170,10 @@ public class FocusEventPingBuilder: TelemetryPingBuilder {
         self.add(measurement: VersionMeasurement(version: type(of: self).Version))
         
         self.add(measurement: self.eventsMeasurement)
+    }
+    
+    override public func getUploadPath(withDocumentId documentId: String) -> String {
+        return super.getUploadPath(withDocumentId: documentId) + "?v=4"
     }
     
     public func add(event: TelemetryEvent) {
