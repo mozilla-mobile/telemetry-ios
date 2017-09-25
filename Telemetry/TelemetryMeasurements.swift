@@ -225,6 +225,7 @@ public class SearchesMeasurement: TelemetryMeasurement {
         case actionBar = "actionbar"
         case listItem = "listitem"
         case suggestion = "suggestion"
+        case quickSearch = "quicksearch"
     }
     
     private let storage: TelemetryStorage
