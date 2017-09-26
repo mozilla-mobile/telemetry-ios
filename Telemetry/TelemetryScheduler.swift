@@ -25,8 +25,8 @@ public class TelemetryScheduler {
         if !hasReachedDailyUploadLimitForPingType(pingType) {
             while let ping = storage.dequeue(pingType: pingType) {
                 client.upload(ping: ping) { (error) in
-                    if error != nil {
-                        print("Error uploading TelemetryPing: \(error!.localizedDescription)")
+                    if let error = error {
+                        print("Error uploading TelemetryPing: \(error.localizedDescription)")
 
                         ping.failedUploadAttempts += 1
                         self.storage.enqueue(ping: ping)
