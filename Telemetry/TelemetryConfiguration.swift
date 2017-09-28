@@ -20,8 +20,6 @@ public class TelemetryConfiguration {
     public var sessionConfigurationBackgroundIdentifier = TelemetryDefaults.SessionConfigurationBackgroundIdentifier
     public var dataDirectory = TelemetryDefaults.DataDirectory
     public var profileFilename = TelemetryDefaults.ProfileFilename
-    public var timeoutIntervalForRequest = TelemetryDefaults.TimeoutIntervalForRequest
-    public var timeoutIntervalForResource = TelemetryDefaults.TimeoutIntervalForResource
     public var minimumEventsForUpload = TelemetryDefaults.MinNumberOfEventsPerUpload
     public var maximumNumberOfEventsPerPing = TelemetryDefaults.MaxNumberOfEventsPerPing
     public var maximumNumberOfPingsPerType = TelemetryDefaults.MaxNumberOfPingsPerType
