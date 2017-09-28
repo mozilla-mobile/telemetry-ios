@@ -15,4 +15,5 @@ public class TelemetryError {
     public static let SessionNotStarted: Int = 102
     public static let InvalidUploadURL: Int = 103
     public static let CannotGenerateJSON: Int = 104
+    public static let UnknownUploadError: Int = 105
 }
