@@ -20,7 +20,8 @@ public class Telemetry {
     public static let `default`: Telemetry = {
         return Telemetry(storageName: "MozTelemetry-Default")
     }()
-    
+
+    let app = AppEvents()
     public init(storageName: String) {
         self.configuration = TelemetryConfiguration()
         
