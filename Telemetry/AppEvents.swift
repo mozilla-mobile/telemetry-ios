@@ -30,17 +30,14 @@ class AppEvents {
     }
 
     @objc func appDidEnterBackground(notification: NSNotification) {
-        NSLog("~~~ background")
-
         Telemetry.default.queue(pingType: CorePingBuilder.PingType)
         Telemetry.default.scheduleUpload(pingType: CorePingBuilder.PingType)
-
     }
 
     @objc func appDidBecomeActive(notification: NSNotification) {
         Telemetry.default.recordSessionStart()
 
-        // TODO: find a way to track this in-lib
+        // TODO: expand on the following method to track more standard app events
         Telemetry.default.recordEvent(category: TelemetryEventCategory.action, method: TelemetryEventMethod.foreground, object: TelemetryEventObject.app)
     }
 }
