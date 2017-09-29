@@ -38,26 +38,17 @@ public class TelemetryStorage {
         save(object: dict, toFile: "\(name)-values.json")
     }
 
-    public func dequeue(pingType: String) -> TelemetryPing? {
-        if let json = open(filename: "\(name)-\(pingType).json") {
-            if var dicts = json as? [[String : Any]] {
-                if dicts.count > 0 {
-                    if let ping = TelemetryPing.from(dictionary: dicts.remove(at: 0)) {
-                        save(object: dicts, toFile: "\(name)-\(pingType).json")
-                        return ping
-                    } else {
-                        print("TelemetryStorage.dequeue(): Unable to deserialize TelemetryPing in \(name)-\(pingType).json at index 0")
-                        save(object: dicts, toFile: "\(name)-\(pingType).json")
-                    }
-                }
-            } else {
-                print("TelemetryStorage.dequeue(): Root array not found in \(name)-\(pingType).json")
-            }
+    func read(pingType: String) -> [[String : Any]]? {
+        if let json = open(filename: "\(name)-\(pingType).json"), let dicts = json as? [[String : Any]] {
+            return dicts
         }
-        
         return nil
     }
-    
+
+    func write(pingType: String, dicts: [[String : Any]]) {
+        save(object: dicts, toFile: "\(name)-\(pingType).json")
+    }
+
     public func enqueue(ping: TelemetryPing) {
         if let json = open(filename: "\(name)-\(ping.pingType).json") {
             if var dicts = json as? [[String : Any]] {

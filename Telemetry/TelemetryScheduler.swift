@@ -17,31 +17,37 @@ public class TelemetryScheduler {
     init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
         self.configuration = configuration
         self.storage = storage
-        
         self.client = TelemetryClient(configuration: configuration)
     }
     
     public func scheduleUpload(pingType: String, completionHandler: @escaping () -> Void) {
-        if !hasReachedDailyUploadLimitForPingType(pingType) {
-            while let ping = storage.dequeue(pingType: pingType) {
-                client.upload(ping: ping) { (error) in
-                    if let error = error {
-                        print("Error uploading TelemetryPing: \(error.localizedDescription)")
+        guard var pings = storage.read(pingType: pingType) else {
+            completionHandler()
+            return
+        }
 
-                        ping.failedUploadAttempts += 1
-                        self.storage.enqueue(ping: ping)
-                    }
+        func sequentialUploader() {
+            guard !hasReachedDailyUploadLimitForPingType(pingType),
+                pings.count > 0,
+                let ping = TelemetryPing.from(dictionary: pings.remove(at: 0)) else {
+                completionHandler()
+                return
+            }
+
+            client.upload(ping: ping) { error in
+                if let error = error {
+                    print("Error uploading TelemetryPing: \(error.localizedDescription)")
+                    completionHandler()
+                    return
                 }
-                
-                incrementDailyUploadCountForPingType(pingType)
-                
-                if hasReachedDailyUploadLimitForPingType(pingType) {
-                    break
-                }
+
+                self.storage.write(pingType: pingType, dicts: pings)
+                self.incrementDailyUploadCountForPingType(pingType)
+                sequentialUploader()
             }
         }
-        
-        completionHandler()
+
+        sequentialUploader()
     }
 
     private func dailyUploadCountForPingType(_ pingType: String) -> Int {
