@@ -41,13 +41,15 @@ public class TelemetryClient: NSObject {
         print("\(request.httpMethod ?? "(GET)") \(request.debugDescription)\nRequest Body: \(String(data: data, encoding: .utf8) ?? "(nil)")")
 
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                completionHandler(nil)
-                return
-            }
+            DispatchQueue.main.async {
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                   completionHandler(nil)
+                    return
+                }
 
-            let err = error ?? NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.UnknownUploadError, userInfo: nil)
-            completionHandler(err)
+                let err = error ?? NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.UnknownUploadError, userInfo: nil)
+                completionHandler(err)
+            }
         }
         task.resume()
     }
