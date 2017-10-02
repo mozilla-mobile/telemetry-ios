@@ -67,8 +67,6 @@
 
 /* Begin PBXFileReference section */
 		C8A2AF591F7C4C36001459EB /* AppEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEvents.swift; sourceTree = "<group>"; };
-		D0657F881EA6A7340090DFE7 /* Cartfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cartfile; sourceTree = "<group>"; };
-		D0657F891EA6A7340090DFE7 /* Cartfile.resolved */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cartfile.resolved; sourceTree = "<group>"; };
 		D0657F8A1EA6A8C30090DFE7 /* TelemetryConfiguration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryConfiguration.swift; sourceTree = "<group>"; };
 		D0657F901EA6A95D0090DFE7 /* TelemetryDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryDefaults.swift; sourceTree = "<group>"; };
 		D0657F9A1EA6B5840090DFE7 /* TelemetryScheduler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryScheduler.swift; sourceTree = "<group>"; };
@@ -138,8 +136,6 @@
 		D0E178151E773B7F00CD2264 = {
 			isa = PBXGroup;
 			children = (
-				D0657F881EA6A7340090DFE7 /* Cartfile */,
-				D0657F891EA6A7340090DFE7 /* Cartfile.resolved */,
 				D0F91B811EAFFCB2001AB82C /* TelemetryPlayground.playground */,
 				D0E178211E773B7F00CD2264 /* Telemetry */,
 				D0E1782C1E773B7F00CD2264 /* TelemetryTests */,
