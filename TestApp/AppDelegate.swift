@@ -12,6 +12,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         telemetryConfig.dataDirectory = .documentDirectory
         Telemetry.default.add(pingBuilderType: CorePingBuilder.self)
 
+        NotificationCenter.default.addObserver(self, selector: #selector(uploadError(notification:)), name: Telemetry.notificationUploadError, object: nil)
+
         return true
+    }
+
+    @objc func uploadError(notification: NSNotification) {
+        guard let error = notification.userInfo?["error"] as? NSError else { return }
+        print("Upload error notification: \(error.localizedDescription)")
     }
 }
