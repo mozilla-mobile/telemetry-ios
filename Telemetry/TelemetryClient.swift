@@ -49,6 +49,7 @@ public class TelemetryClient: NSObject {
 
                 let err = error ?? NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.UnknownUploadError, userInfo: nil)
                 completionHandler(err)
+                NotificationCenter.default.post(name: Telemetry.notificationUploadError, object: nil, userInfo: ["error": err])
             }
         }
         task.resume()
