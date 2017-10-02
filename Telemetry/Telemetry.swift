@@ -16,7 +16,10 @@ public class Telemetry {
     private let scheduler: TelemetryScheduler
 
     private var pingBuilders: [String : TelemetryPingBuilder]
-    
+
+    // Use this to monitor upload errors from outside of this library
+    public static let notificationUploadError = Notification.Name("NotificationTelemetryUploadError")
+
     public static let `default`: Telemetry = {
         return Telemetry(storageName: "MozTelemetry-Default")
     }()
