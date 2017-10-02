@@ -394,3 +394,48 @@ public class VersionMeasurement: StaticTelemetryMeasurement {
         super.init(name: "v", value: version)
     }
 }
+
+public class SinglePrefKeyMeasurement: TelemetryMeasurement {
+    let configuration: TelemetryConfiguration
+
+    init(configuration: TelemetryConfiguration, name: String) {
+        self.configuration = configuration
+        super.init(name: name)
+    }
+
+    func prefKey() -> String? {
+        return nil
+    }
+
+    override func flush() -> Any? {
+        guard let prefKey = prefKey() else { return nil }
+
+        let userDefaults = configuration.userDefaultsSuiteName != nil ? UserDefaults(suiteName: configuration.userDefaultsSuiteName) : UserDefaults()
+        if let value = userDefaults?.object(forKey: prefKey) {
+            return TelemetryUtils.asString(value)
+        }
+        return nil
+    }
+}
+
+public class NewTabChoiceMeasurement: SinglePrefKeyMeasurement {
+    init(configuration: TelemetryConfiguration) {
+        super.init(configuration: configuration, name: "defaultNewTabExperience")
+    }
+
+    override func prefKey() -> String? {
+        return configuration.defaultNewTabExperiencePrefKey
+    }
+}
+
+public class MailClientChoiceMeasurement: SinglePrefKeyMeasurement {
+    init(configuration: TelemetryConfiguration) {
+        super.init(configuration: configuration, name: "defaultMailClient")
+    }
+
+    override func prefKey() -> String? {
+        return configuration.defaultMailClientPrefKey
+    }
+}
+
+

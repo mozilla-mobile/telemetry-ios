@@ -31,7 +31,10 @@ public class TelemetryConfiguration {
 
     public var userDefaultsSuiteName: String?
     private(set) public var measuredUserDefaults: [[String : Any?]]
-    
+
+    public var defaultNewTabExperiencePrefKey: String? = nil
+    public var defaultMailClientPrefKey: String? = nil
+
     public init() {
         let info = Bundle.main.infoDictionary
 
