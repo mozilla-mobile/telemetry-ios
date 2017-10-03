@@ -101,6 +101,8 @@ public class CorePingBuilder: TelemetryPingBuilder {
         self.add(measurement: self.sessionCountMeasurement)
         self.add(measurement: self.sessionDurationMeasurement)
         self.add(measurement: self.searchesMeasurement)
+        self.add(measurement: NewTabChoiceMeasurement(configuration: configuration))
+        self.add(measurement: MailClientChoiceMeasurement(configuration: configuration))
     }
 
     override public func getUploadPath(withDocumentId documentId: String) -> String {
