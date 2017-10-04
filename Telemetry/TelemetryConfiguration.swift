@@ -37,7 +37,7 @@ public class TelemetryConfiguration {
 
         self.appName = info?["CFBundleDisplayName"] as? String ?? TelemetryDefaults.AppName
         self.appVersion = info?["CFBundleShortVersionString"] as? String ?? TelemetryDefaults.AppVersion
-        self.buildId = info?["CFBundleVersionKey"] as? String ?? TelemetryDefaults.BuildId
+        self.buildId = info?["CFBundleVersion"] as? String ?? TelemetryDefaults.BuildId
         
         self.userDefaultsSuiteName = nil
         self.measuredUserDefaults = []
