@@ -58,24 +58,25 @@ public class Telemetry {
             self.storage.enqueue(ping: ping)
         }
     }
-    
+
+    var backgroundTask = UIBackgroundTaskInvalid
+
     public func scheduleUpload(pingType: String) {
-        if !self.configuration.isUploadEnabled {
+        if !self.configuration.isUploadEnabled || backgroundTask != UIBackgroundTaskInvalid {
             return
         }
         
-        var backgroundTask: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
         backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "MozTelemetryUpload-\(pingType)") {
             print("Background task 'MozTelemetryUpload-\(pingType)' is expiring")
             
-            UIApplication.shared.endBackgroundTask(backgroundTask)
-            backgroundTask = UIBackgroundTaskInvalid
+            UIApplication.shared.endBackgroundTask(self.backgroundTask)
+            self.backgroundTask = UIBackgroundTaskInvalid
         }
 
         DispatchQueue.main.async {
             self.scheduler.scheduleUpload(pingType: pingType) {
-                UIApplication.shared.endBackgroundTask(backgroundTask)
-                backgroundTask = UIBackgroundTaskInvalid
+                UIApplication.shared.endBackgroundTask(self.backgroundTask)
+                self.backgroundTask = UIBackgroundTaskInvalid
             }
         }
     }
