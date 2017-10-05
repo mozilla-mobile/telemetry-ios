@@ -26,7 +26,7 @@ public class TelemetryScheduler {
             return
         }
 
-        func sequentialUploader() {
+        func sequentialPingUploader() {
             guard !hasReachedDailyUploadLimitForPingType(pingType),
                 pings.count > 0,
                 let ping = TelemetryPing.from(dictionary: pings.remove(at: 0)) else {
@@ -34,20 +34,24 @@ public class TelemetryScheduler {
                 return
             }
 
-            client.upload(ping: ping) { error in
-                if let error = error {
-                    print("Error uploading TelemetryPing: \(error.localizedDescription)")
-                    completionHandler()
-                    return
-                }
+            client.upload(ping: ping) { httpStatusCode, error in
+                let errorCode = (error as NSError?)?.code ?? 0
+                let errorRequiresDelete = [TelemetryError.InvalidUploadURL, TelemetryError.CannotGenerateJSON].contains(errorCode)
 
-                self.storage.write(pingType: pingType, dicts: pings)
-                self.incrementDailyUploadCountForPingType(pingType)
-                sequentialUploader()
+                // Arguably, this could be (200..<500).contains(httpStatusCode) and 5xx errors could be handled more selectively to decide whether to delete the ping.
+                if httpStatusCode >= 200 || errorRequiresDelete {
+                    // Network call completed, successful or with error, delete the ping, and upload the next ping.
+                    self.storage.write(pingType: pingType, dicts: pings)
+                    self.incrementDailyUploadCountForPingType(pingType)
+                    sequentialPingUploader()
+                } else {
+                    // Stops uploading.
+                    completionHandler()
+                }
             }
         }
 
-        sequentialUploader()
+        sequentialPingUploader()
     }
 
     private func dailyUploadCountForPingType(_ pingType: String) -> Int {
