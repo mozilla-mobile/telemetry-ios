@@ -10,6 +10,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         telemetryConfig.appName = "AppInfo.displayName"
         telemetryConfig.userDefaultsSuiteName = "AppInfo.sharedContainerIdentifier"
         telemetryConfig.dataDirectory = .documentDirectory
+
+        Telemetry.default.beforeSerializePing(pingType: CorePingBuilder.PingType) { (inputDict) -> [String : Any?] in
+            var outputDict = inputDict // make a mutable copy
+            outputDict["some added prop"] = 1
+            return outputDict
+        }
+
         Telemetry.default.add(pingBuilderType: CorePingBuilder.self)
 
         NotificationCenter.default.addObserver(self, selector: #selector(uploadError(notification:)), name: Telemetry.notificationUploadError, object: nil)

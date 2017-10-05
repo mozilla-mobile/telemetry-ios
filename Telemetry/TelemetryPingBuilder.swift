@@ -37,11 +37,17 @@ public class TelemetryPingBuilder {
         measurements.append(measurement)
     }
     
-    public func build() -> TelemetryPing {
+    public func build(usingHandlers handlers: [BeforeSerializePingHandler]?) -> TelemetryPing {
         let pingType = type(of: self).PingType
         let documentId = UUID.init().uuidString
         let uploadPath = getUploadPath(withDocumentId: documentId)
-        return TelemetryPing(pingType: pingType, documentId: documentId, uploadPath: uploadPath, measurements: flushMeasurements(), timestamp: Date().timeIntervalSince1970)
+        var data = flushMeasurements()
+        if let handlers = handlers {
+            for handler in handlers {
+                data = handler(data)
+            }
+        }
+        return TelemetryPing(pingType: pingType, documentId: documentId, uploadPath: uploadPath, measurements: data, timestamp: Date().timeIntervalSince1970)
     }
     
     public func getUploadPath(withDocumentId documentId: String) -> String {
@@ -61,7 +67,7 @@ public class TelemetryPingBuilder {
                 results[measurement.name] = value
             }
         }
-        
+
         return results
     }
 }
