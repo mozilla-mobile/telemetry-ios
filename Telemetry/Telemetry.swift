@@ -9,12 +9,14 @@
 import Foundation
 import UIKit
 
+public typealias BeforeSerializePingHandler = ([String: Any?]) -> [String: Any?]
+
 public class Telemetry {
     public let configuration: TelemetryConfiguration
     
     private let storage: TelemetryStorage
     private let scheduler: TelemetryScheduler
-
+    private var beforeSerializePingHandlers = [String: [BeforeSerializePingHandler]]()
     private var pingBuilders: [String : TelemetryPingBuilder]
 
     // Use this to monitor upload errors from outside of this library
@@ -54,12 +56,12 @@ public class Telemetry {
                 return
             }
 
-            let ping = pingBuilder.build()
+            let ping = pingBuilder.build(usingHandlers: self.beforeSerializePingHandlers[pingType])
             self.storage.enqueue(ping: ping)
         }
     }
 
-    var backgroundTask = UIBackgroundTaskInvalid
+    private var backgroundTask = UIBackgroundTaskInvalid
 
     public func scheduleUpload(pingType: String) {
         if !self.configuration.isUploadEnabled || backgroundTask != UIBackgroundTaskInvalid {
@@ -119,12 +121,12 @@ public class Telemetry {
         
         DispatchQueue.main.async {
             pingBuilder.add(event: event)
-            
+
             if pingBuilder.numberOfEvents < self.configuration.maximumNumberOfEventsPerPing {
                 return
             }
-            
-            let ping = pingBuilder.build()
+
+            let ping = pingBuilder.build(usingHandlers: self.beforeSerializePingHandlers[FocusEventPingBuilder.PingType])
             self.storage.enqueue(ping: ping)
         }
     }
@@ -152,5 +154,13 @@ public class Telemetry {
         }
         
         pingBuilder.search(location: location, searchEngine: searchEngine)
+    }
+
+    // To modify the final key-value data dict before it gets stored as JSON, install a handler using this func.
+    public func beforeSerializePing(pingType: String, handler: @escaping BeforeSerializePingHandler) {
+        if beforeSerializePingHandlers[pingType] == nil {
+            beforeSerializePingHandlers[pingType] = [BeforeSerializePingHandler]()
+        }
+        beforeSerializePingHandlers[pingType]?.append(handler)
     }
 }
