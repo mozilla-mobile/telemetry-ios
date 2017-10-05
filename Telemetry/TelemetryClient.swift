@@ -14,13 +14,15 @@ public class TelemetryClient: NSObject {
     public init(configuration: TelemetryConfiguration) {
         self.configuration = configuration
     }
-    
-    public func upload(ping: TelemetryPing, completionHandler: @escaping (Error?) -> Void) -> Void {
+
+    // The closure is called with an HTTP status code (zero if unavailable) and an error
+    public func upload(ping: TelemetryPing, completionHandler: @escaping (Int, Error?) -> Void) -> Void {
         guard let url = URL(string: "\(configuration.serverEndpoint)\(ping.uploadPath)") else {
             let error = NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.InvalidUploadURL, userInfo: [NSLocalizedDescriptionKey: "Invalid upload URL: \(configuration.serverEndpoint)\(ping.uploadPath)"])
             
             print(error.localizedDescription)
-            completionHandler(error)
+            completionHandler(0, error)
+            NotificationCenter.default.post(name: Telemetry.notificationUploadError, object: nil, userInfo: ["error": error])
             return
         }
         
@@ -28,7 +30,8 @@ public class TelemetryClient: NSObject {
             let error = NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.CannotGenerateJSON, userInfo: [NSLocalizedDescriptionKey: "Error generating JSON data for TelemetryPing"])
 
             print(error.localizedDescription)
-            completionHandler(error)
+            completionHandler(0, error)
+            NotificationCenter.default.post(name: Telemetry.notificationUploadError, object: nil, userInfo: ["error": error])
             return
         }
 
@@ -42,13 +45,15 @@ public class TelemetryClient: NSObject {
 
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             DispatchQueue.main.async {
-                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                   completionHandler(nil)
+                let httpResponse = response as? HTTPURLResponse
+                let statusCode = httpResponse?.statusCode ?? 0
+                if statusCode == 200 {
+                    completionHandler(statusCode, nil)
                     return
                 }
 
                 let err = error ?? NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.UnknownUploadError, userInfo: nil)
-                completionHandler(err)
+                completionHandler(statusCode, err)
                 NotificationCenter.default.post(name: Telemetry.notificationUploadError, object: nil, userInfo: ["error": err])
             }
         }
