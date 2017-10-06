@@ -40,6 +40,7 @@ public class TelemetryClient: NSObject {
         request.addValue(configuration.userAgent, forHTTPHeaderField: "User-Agent")
         request.httpMethod = "POST"
         request.httpBody = data
+        request.httpShouldHandleCookies = false
 
         print("\(request.httpMethod ?? "(GET)") \(request.debugDescription)\nRequest Body: \(String(data: data, encoding: .utf8) ?? "(nil)")")
 
