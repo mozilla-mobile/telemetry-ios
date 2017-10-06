@@ -16,4 +16,5 @@ public class TelemetryError {
     public static let InvalidUploadURL: Int = 103
     public static let CannotGenerateJSON: Int = 104
     public static let UnknownUploadError: Int = 105
+    public static let CannotGeneratePing: Int = 106
 }

@@ -21,16 +21,37 @@ public class TelemetryScheduler {
     }
     
     public func scheduleUpload(pingType: String, completionHandler: @escaping () -> Void) {
-        guard var pings = storage.read(pingType: pingType) else {
+        storage.markPingFileReadyForUpload(pingType: pingType)
+        var filesAndPings = storage.readAllFilesReadyForUpload(pingType: pingType)
+        if filesAndPings.count == 0 {
             completionHandler()
             return
         }
 
+        var currentFile = filesAndPings.remove(at: 0)
+
         func sequentialPingUploader() {
-            guard !hasReachedDailyUploadLimitForPingType(pingType),
-                pings.count > 0,
-                let ping = TelemetryPing.from(dictionary: pings.remove(at: 0)) else {
+            if hasReachedDailyUploadLimitForPingType(pingType) {
                 completionHandler()
+                return
+            }
+
+            if currentFile.dicts.count == 0 {
+                if filesAndPings.count > 0 {
+                    currentFile = filesAndPings.remove(at: 0)
+                    sequentialPingUploader()
+                } else {
+                    completionHandler()
+                }
+                return
+            }
+
+            guard let ping = TelemetryPing.from(dictionary: currentFile.dicts.remove(at: 0)) else {
+                let error = NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.CannotGeneratePing, userInfo: [NSLocalizedDescriptionKey: "Ping to JSON conversion failure."])
+                NotificationCenter.default.post(name: Telemetry.notificationUploadError, object: nil, userInfo: ["error": error])
+
+                storage.writeOrDelete(file: currentFile.filename, dicts: currentFile.dicts)
+                sequentialPingUploader()
                 return
             }
 
@@ -41,7 +62,7 @@ public class TelemetryScheduler {
                 // Arguably, this could be (200..<500).contains(httpStatusCode) and 5xx errors could be handled more selectively to decide whether to delete the ping.
                 if httpStatusCode >= 200 || errorRequiresDelete {
                     // Network call completed, successful or with error, delete the ping, and upload the next ping.
-                    self.storage.write(pingType: pingType, dicts: pings)
+                    self.storage.writeOrDelete(file: currentFile.filename, dicts: currentFile.dicts)
                     self.incrementDailyUploadCountForPingType(pingType)
                     sequentialPingUploader()
                 } else {

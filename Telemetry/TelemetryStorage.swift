@@ -38,15 +38,45 @@ public class TelemetryStorage {
         save(object: dict, toFile: "\(name)-values.json")
     }
 
-    func read(pingType: String) -> [[String : Any]]? {
-        if let json = open(filename: "\(name)-\(pingType).json"), let dicts = json as? [[String : Any]] {
-            return dicts
+    private func listFilesFromStorageFolder () -> [String]? {
+        do {
+            let url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+            return try FileManager.default.contentsOfDirectory(atPath: url.path)
+        } catch {
+            return nil
         }
-        return nil
     }
 
-    func write(pingType: String, dicts: [[String : Any]]) {
-        save(object: dicts, toFile: "\(name)-\(pingType).json")
+    typealias PingFile = (filename: String, dicts: [[String : Any]])
+    func readAllFilesReadyForUpload(pingType: String) -> [PingFile] {
+        var result = [PingFile]()
+        let files = listFilesFromStorageFolder()
+        files?.forEach { file in
+            if file.hasPrefix("\(name)-\(pingType)-") && file.hasSuffix(".json") {
+                if let json = open(filename: file), let dicts = json as? [[String : Any]] {
+                    result.append((file, dicts))
+                }
+            }
+        }
+
+        return result
+    }
+
+    func markPingFileReadyForUpload(pingType: String) {
+        let time = Date().timeIntervalSince1970
+        let origName = "\(name)-\(pingType).json"
+        let newName = "\(name)-\(pingType)-\(time).json"
+        do {
+             let old = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent(origName)
+
+            let path = NSSearchPathForDirectoriesInDomains(configuration.dataDirectory, .userDomainMask, true)[0]
+            let documentDirectory = URL(fileURLWithPath: path)
+            let new = documentDirectory.appendingPathComponent(newName)
+
+            try FileManager.default.moveItem(at: old, to: new)
+        } catch {
+            print(error)
+        }
     }
 
     public func enqueue(ping: TelemetryPing) {
@@ -80,7 +110,23 @@ public class TelemetryStorage {
         
         return nil
     }
-    
+
+    // Write the dicts to the named file, or if the dicts is empty, deletes the file.
+    func writeOrDelete(file: String, dicts: [[String : Any?]]) {
+        if dicts.count < 1 {
+            do {
+                let url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent(file)
+                try FileManager.default.removeItem(at: url)
+            }
+            catch {
+                print(error)
+            }
+
+            return
+        }
+        save(object: dicts, toFile: file)
+    }
+
     private func save(object: Any, toFile filename: String) {
         do {
             var url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent(filename)
