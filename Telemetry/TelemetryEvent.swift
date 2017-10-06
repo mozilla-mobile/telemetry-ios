@@ -25,12 +25,12 @@ public class TelemetryEvent {
     public let object: String
     public let value: String?
     
-    public let timestamp: UIntMax
+    public let timestamp: UInt64
     
     private var extras: [String : String]
     
     public convenience init(category: String, method: String, object: String, value: String? = nil, extras: [String : Any?]? = nil) {
-        self.init(category: category, method: method, object: object, value: value, timestamp: UIntMax(Date().timeIntervalSince(type(of: self).AppLaunchTimestamp) * 1000))
+        self.init(category: category, method: method, object: object, value: value, timestamp: UInt64(Date().timeIntervalSince(type(of: self).AppLaunchTimestamp) * 1000))
         
         if let extras = extras {
             for (key, value) in extras {
@@ -39,7 +39,7 @@ public class TelemetryEvent {
         }
     }
     
-    private init(category: String, method: String, object: String, value: String?, timestamp: UIntMax) {
+    private init(category: String, method: String, object: String, value: String?, timestamp: UInt64) {
         self.category = TelemetryUtils.truncate(string: category, maxLength: TelemetryEvent.MaxLengthCategory)!
         self.method = TelemetryUtils.truncate(string: method, maxLength: TelemetryEvent.MaxLengthMethod)!
         self.object = TelemetryUtils.truncate(string: object, maxLength: TelemetryEvent.MaxLengthObject)!
