@@ -30,7 +30,8 @@ public class TelemetryEvent {
     private var extras: [String : String]
     
     public convenience init(category: String, method: String, object: String, value: String? = nil, extras: [String : Any?]? = nil) {
-        self.init(category: category, method: method, object: object, value: value, timestamp: UInt64(Date().timeIntervalSince(type(of: self).AppLaunchTimestamp) * 1000))
+        let timestamp = max(0, UInt64(Date().timeIntervalSince(type(of: self).AppLaunchTimestamp) * 1000))
+        self.init(category: category, method: method, object: object, value: value, timestamp: timestamp)
         
         if let extras = extras {
             for (key, value) in extras {
