@@ -107,8 +107,15 @@ public class DefaultSearchMeasurement: TelemetryMeasurement {
 }
 
 public class DeviceMeasurement: StaticTelemetryMeasurement {
+    static let modelInfo: String = {
+        var sysinfo = utsname()
+        uname(&sysinfo)
+        let rawModel = NSString(bytes: &sysinfo.machine, length: Int(_SYS_NAMELEN), encoding: String.Encoding.ascii.rawValue)!
+        return rawModel.trimmingCharacters(in: NSCharacterSet.controlCharacters)
+    }()
+
     init() {
-        super.init(name: "device", value: UIDevice.current.model)
+        super.init(name: "device", value: DeviceMeasurement.modelInfo)
     }
 }
 
