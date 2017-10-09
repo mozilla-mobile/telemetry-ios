@@ -11,31 +11,20 @@ import Foundation
 public class TelemetryStorage {
     private let name: String
     private let configuration: TelemetryConfiguration
-    
+
+    let userDefaults = UserDefaults(suiteName: "org.mozilla.telemetry-ios-lib")!
+
     public init(name: String, configuration: TelemetryConfiguration) {
         self.name = name
         self.configuration = configuration
     }
 
     public func get(valueFor key: String) -> Any? {
-        if let json = open(filename: "\(name)-values.json") {
-            if let dict = json as? [String : Any?] {
-                return dict[key] ?? nil
-            } else {
-                print("TelemetryStorage.get(): Value not found in \(name)-values.json for key '\(key)'")
-            }
-        }
-        
-        return nil
+        return userDefaults.object(forKey: key)
     }
 
     public func set(key: String, value: Any?) {
-        let json = open(filename: "\(name)-values.json")
-        var dict = json as? [String : Any?] ?? [String : Any?]()
-
-        dict[key] = value
-        
-        save(object: dict, toFile: "\(name)-values.json")
+        userDefaults.set(value, forKey: key)
     }
 
     func read(pingType: String) -> [[String : Any]]? {
