@@ -16,7 +16,6 @@ class TelemetryEventObject {
 }
 
 class AppEvents {
-
     init() {
         NotificationCenter.default.addObserver(self, selector: #selector(AppEvents.appWillResignActive(notification:)), name: NSNotification.Name.UIApplicationWillResignActive, object: nil)
 
@@ -26,19 +25,22 @@ class AppEvents {
     }
 
     @objc func appWillResignActive(notification: NSNotification) {
-        Telemetry.default.recordSessionEnd()
+        if Telemetry.default.hasPingType(CorePingBuilder.PingType) {
+            Telemetry.default.recordSessionEnd()
+        }
     }
 
     @objc func appDidEnterBackground(notification: NSNotification) {
-        Telemetry.default.queue(pingType: CorePingBuilder.PingType)
-        Telemetry.default.scheduleUpload(pingType: CorePingBuilder.PingType)
+        Telemetry.default.forEachPingType { pingType in
+            Telemetry.default.queue(pingType: pingType)
+            Telemetry.default.scheduleUpload(pingType: pingType)
+        }
     }
 
     @objc func appDidBecomeActive(notification: NSNotification) {
-        Telemetry.default.recordSessionStart()
-
-        // TODO: expand on the following method to track more standard app events
-        Telemetry.default.recordEvent(category: TelemetryEventCategory.action, method: TelemetryEventMethod.foreground, object: TelemetryEventObject.app)
+        if Telemetry.default.hasPingType(CorePingBuilder.PingType) {
+            Telemetry.default.recordSessionStart()
+        }
     }
 }
 

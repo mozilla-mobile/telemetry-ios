@@ -25,7 +25,7 @@ public class TelemetryEvent {
     public let object: String
     public let value: String?
     
-    public let timestamp: UIntMax
+    public let timestamp: UInt64
     
     private var extras: [String : String]
     
@@ -40,7 +40,7 @@ public class TelemetryEvent {
         }
     }
     
-    private init(category: String, method: String, object: String, value: String?, timestamp: UIntMax) {
+    private init(category: String, method: String, object: String, value: String?, timestamp: UInt64) {
         self.category = TelemetryUtils.truncate(string: category, maxLength: TelemetryEvent.MaxLengthCategory)!
         self.method = TelemetryUtils.truncate(string: method, maxLength: TelemetryEvent.MaxLengthMethod)!
         self.object = TelemetryUtils.truncate(string: object, maxLength: TelemetryEvent.MaxLengthObject)!
