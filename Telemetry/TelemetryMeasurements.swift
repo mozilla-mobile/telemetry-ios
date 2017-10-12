@@ -88,7 +88,7 @@ public class CreatedDateMeasurement: StaticTelemetryMeasurement {
 
 public class CreatedTimestampMeasurement: StaticTelemetryMeasurement {
     init() {
-        super.init(name: "created", value: UIntMax(Date().timeIntervalSince1970 * 1000))
+        super.init(name: "created", value: UInt64(Date().timeIntervalSince1970 * 1000))
     }
 }
 
@@ -246,7 +246,7 @@ public class SearchesMeasurement: TelemetryMeasurement {
     override func flush() -> Any? {
         let searches = storage.get(valueFor: "searches")
 
-        storage.set(key: "searches", value: nil)
+        storage.set(key: "searches", value: [:])
         
         return searches
     }
@@ -276,7 +276,7 @@ public class SequenceMeasurement: TelemetryMeasurement {
     }
     
     override func flush() -> Any? {
-        var sequence: UIntMax = storage.get(valueFor: "\(pingType)-seq") as? UIntMax ?? 0
+        var sequence: UInt64 = storage.get(valueFor: "\(pingType)-seq") as? UInt64 ?? 0
 
         sequence += 1
         
@@ -296,7 +296,7 @@ public class SessionCountMeasurement: TelemetryMeasurement {
     }
     
     override func flush() -> Any? {
-        let sessions: UIntMax = storage.get(valueFor: "sessions") as? UIntMax ?? 0
+        let sessions: UInt64 = storage.get(valueFor: "sessions") as? UInt64 ?? 0
         
         storage.set(key: "sessions", value: 0)
         
@@ -304,7 +304,7 @@ public class SessionCountMeasurement: TelemetryMeasurement {
     }
     
     public func increment() {
-        var sessions: UIntMax = storage.get(valueFor: "sessions") as? UIntMax ?? 0
+        var sessions: UInt64 = storage.get(valueFor: "sessions") as? UInt64 ?? 0
         
         sessions += 1
 
@@ -326,7 +326,7 @@ public class SessionDurationMeasurement: TelemetryMeasurement {
     }
     
     override func flush() -> Any? {
-        let durations = storage.get(valueFor: "durations") as? UIntMax ?? 0
+        let durations = storage.get(valueFor: "durations") as? UInt64 ?? 0
         
         storage.set(key: "durations", value: 0)
         
@@ -351,9 +351,9 @@ public class SessionDurationMeasurement: TelemetryMeasurement {
             throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.SessionNotStarted, userInfo: [NSLocalizedDescriptionKey: "Session has not started"])
         }
         
-        var totalDurations = storage.get(valueFor: "durations") as? UIntMax ?? 0
+        var totalDurations = storage.get(valueFor: "durations") as? UInt64 ?? 0
         
-        let duration = UIntMax(Date().timeIntervalSince(startTime!))
+        let duration = UInt64(Date().timeIntervalSince(startTime!))
         totalDurations += duration
         
         storage.set(key: "durations", value: totalDurations)

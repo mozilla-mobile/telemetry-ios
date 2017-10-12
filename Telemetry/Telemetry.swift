@@ -40,7 +40,17 @@ public class Telemetry {
         let pingBuilder = pingBuilderType.init(configuration: configuration, storage: storage)
         pingBuilders[pingBuilderType.PingType] = pingBuilder
     }
-    
+
+    public func hasPingType(_ pingType: String) -> Bool {
+        return pingBuilders[pingType] != nil
+    }
+
+    public func forEachPingType(_ iterator: (String) -> Void) {
+        for (pingType, _) in pingBuilders {
+            iterator(pingType)
+        }
+    }
+
     public func queue(pingType: String) {
         if !self.configuration.isCollectionEnabled {
             return
@@ -64,7 +74,7 @@ public class Telemetry {
     private var backgroundTask = UIBackgroundTaskInvalid
 
     public func scheduleUpload(pingType: String) {
-        if !self.configuration.isUploadEnabled || backgroundTask != UIBackgroundTaskInvalid {
+        guard configuration.isUploadEnabled, backgroundTask == UIBackgroundTaskInvalid else {
             return
         }
         
