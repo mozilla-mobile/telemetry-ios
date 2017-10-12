@@ -39,8 +39,9 @@ class TelemetryStorageSequence : Sequence, IteratorProtocol {
                 print("TelemetryStorageSequence.next(): \(error.localizedDescription)")
             }
 
-            // TODO: If we get here without returning a ping, something went
-            // wrong and we should delete the file.
+            // If we get here without returning a ping, something went wrong that
+            // is unrecoverable and we should just delete the file.
+            removePingFile(url)
         }
 
         currentPingFile = nil
@@ -52,10 +53,14 @@ class TelemetryStorageSequence : Sequence, IteratorProtocol {
             return
         }
 
+        removePingFile(currentPingFile)
+    }
+
+    private func removePingFile(_ pingFile: URL) {
         do {
-            try FileManager.default.removeItem(at: currentPingFile)
+            try FileManager.default.removeItem(at: pingFile)
         } catch {
-            print("TelemetryStorageSequence.remove(): \(error.localizedDescription)")
+            print("TelemetryStorageSequence.removePingFile(\(pingFile.absoluteString)): \(error.localizedDescription)")
         }
     }
 }
@@ -118,7 +123,7 @@ public class TelemetryStorage {
 
     private func directoryForPingType(_ pingType: String) -> URL? {
         do {
-            let url = try FileManager.default.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("\(name)-\(pingType)")
+            let url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("\(name)-\(pingType)")
             try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
             return url
         } catch {
