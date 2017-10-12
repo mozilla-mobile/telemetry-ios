@@ -246,7 +246,7 @@ public class SearchesMeasurement: TelemetryMeasurement {
     override func flush() -> Any? {
         let searches = storage.get(valueFor: "searches")
 
-        storage.set(key: "searches", value: nil)
+        storage.set(key: "searches", value: [:])
         
         return searches
     }

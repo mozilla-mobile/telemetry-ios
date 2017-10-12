@@ -21,15 +21,25 @@ public class TelemetryScheduler {
     }
     
     public func scheduleUpload(pingType: String, completionHandler: @escaping () -> Void) {
-        guard var pings = storage.read(pingType: pingType) else {
-            completionHandler()
-            return
-        }
+        var pingSequence = storage.sequenceForPingType(pingType)
 
-        func sequentialPingUploader() {
-            guard !hasReachedDailyUploadLimitForPingType(pingType),
-                pings.count > 0,
-                let ping = TelemetryPing.from(dictionary: pings.remove(at: 0)) else {
+        func uploadNextPing() {
+            guard !hasReachedDailyUploadLimitForPingType(pingType) else {
+                completionHandler()
+                return
+            }
+
+            // Get the next ping in the sequence.
+            var nextPing = pingSequence.next()
+
+            // If there are no remaining pings in the sequence, get a new sequence from
+            // storage in case any additional pings were queued while we were uploading.
+            if nextPing == nil {
+                pingSequence = storage.sequenceForPingType(pingType)
+                nextPing = pingSequence.next()
+            }
+
+            guard let ping = nextPing else {
                 completionHandler()
                 return
             }
@@ -41,17 +51,18 @@ public class TelemetryScheduler {
                 // Arguably, this could be (200..<500).contains(httpStatusCode) and 5xx errors could be handled more selectively to decide whether to delete the ping.
                 if httpStatusCode >= 200 || errorRequiresDelete {
                     // Network call completed, successful or with error, delete the ping, and upload the next ping.
-                    self.storage.write(pingType: pingType, dicts: pings)
+                    pingSequence.remove()
                     self.incrementDailyUploadCountForPingType(pingType)
-                    sequentialPingUploader()
+                    uploadNextPing()
                 } else {
-                    // Stops uploading.
-                    completionHandler()
+                    // Don't delete this ping even though we couldn't upload it right now. Just continue on
+                    // to the next ping.
+                    uploadNextPing()
                 }
             }
         }
 
-        sequentialPingUploader()
+        uploadNextPing()
     }
 
     private func dailyUploadCountForPingType(_ pingType: String) -> Int {
