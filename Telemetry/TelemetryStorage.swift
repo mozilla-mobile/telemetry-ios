@@ -69,7 +69,8 @@ public class TelemetryStorage {
     private let name: String
     private let configuration: TelemetryConfiguration
 
-    let userDefaults = UserDefaults(suiteName: "org.mozilla.telemetry-ios-lib")!
+    // Prepend to all key usage to avoid UserDefaults name collisions
+    private let keyPrefix = "telemetry-key-prefix-"
 
     public init(name: String, configuration: TelemetryConfiguration) {
         self.name = name
@@ -77,11 +78,11 @@ public class TelemetryStorage {
     }
 
     public func get(valueFor key: String) -> Any? {
-        return userDefaults.object(forKey: key)
+        return UserDefaults.standard.object(forKey: keyPrefix + key)
     }
 
     public func set(key: String, value: Any) {
-        userDefaults.set(value, forKey: key)
+        UserDefaults.standard.set(value, forKey: keyPrefix + key)
     }
 
     public func enqueue(ping: TelemetryPing) {
