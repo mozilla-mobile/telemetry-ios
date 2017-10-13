@@ -16,8 +16,10 @@ public class Telemetry {
     
     private let storage: TelemetryStorage
     private let scheduler: TelemetryScheduler
-    private var beforeSerializePingHandlers = [String: [BeforeSerializePingHandler]]()
-    private var pingBuilders: [String : TelemetryPingBuilder]
+
+    private var beforeSerializePingHandlers = [String : [BeforeSerializePingHandler]]()
+    private var pingBuilders = [String : TelemetryPingBuilder]()
+    private var backgroundTasks = [String : UIBackgroundTaskIdentifier]()
 
     // Use this to monitor upload errors from outside of this library
     public static let notificationUploadError = Notification.Name("NotificationTelemetryUploadError")
@@ -32,13 +34,12 @@ public class Telemetry {
         
         self.storage = TelemetryStorage(name: storageName, configuration: configuration)
         self.scheduler = TelemetryScheduler(configuration: configuration, storage: storage)
-        
-        self.pingBuilders = [:]
     }
     
     public func add<T: TelemetryPingBuilder>(pingBuilderType: T.Type) {
         let pingBuilder = pingBuilderType.init(configuration: configuration, storage: storage)
         pingBuilders[pingBuilderType.PingType] = pingBuilder
+        backgroundTasks[pingBuilderType.PingType] = UIBackgroundTaskInvalid
     }
 
     public func hasPingType(_ pingType: String) -> Bool {
@@ -62,7 +63,7 @@ public class Telemetry {
         }
         
         DispatchQueue.main.async {
-            if !pingBuilder.canBuild {
+            guard pingBuilder.canBuild else {
                 return
             }
 
@@ -71,41 +72,47 @@ public class Telemetry {
         }
     }
 
-    private var backgroundTask = UIBackgroundTaskInvalid
-
     public func scheduleUpload(pingType: String) {
-        guard configuration.isUploadEnabled, backgroundTask == UIBackgroundTaskInvalid else {
+        guard configuration.isUploadEnabled,
+            let backgroundTask = backgroundTasks[pingType],
+            backgroundTask == UIBackgroundTaskInvalid else {
             return
         }
-        
-        backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "MozTelemetryUpload-\(pingType)") {
+
+        backgroundTasks[pingType] = UIApplication.shared.beginBackgroundTask(withName: "MozTelemetryUpload-\(pingType)") {
             print("Background task 'MozTelemetryUpload-\(pingType)' is expiring")
-            
-            UIApplication.shared.endBackgroundTask(self.backgroundTask)
-            self.backgroundTask = UIBackgroundTaskInvalid
+
+            if let backgroundTask = self.backgroundTasks[pingType] {
+                UIApplication.shared.endBackgroundTask(backgroundTask)
+            }
+
+            self.backgroundTasks[pingType] = UIBackgroundTaskInvalid
         }
 
         DispatchQueue.main.async {
             self.scheduler.scheduleUpload(pingType: pingType) {
-                UIApplication.shared.endBackgroundTask(self.backgroundTask)
-                self.backgroundTask = UIBackgroundTaskInvalid
+                if let backgroundTask = self.backgroundTasks[pingType] {
+                    UIApplication.shared.endBackgroundTask(backgroundTask)
+                }
+
+                self.backgroundTasks[pingType] = UIBackgroundTaskInvalid
             }
         }
     }
-    
+
     public func recordSessionStart() {
         if !configuration.isCollectionEnabled {
             return
         }
-        
+
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
             print("This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)")
             return
         }
-        
+
         pingBuilder.startSession()
     }
-    
+
     public func recordSessionEnd() {
         if !configuration.isCollectionEnabled {
             return
@@ -115,54 +122,51 @@ public class Telemetry {
             print("This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)")
             return
         }
-        
+
         pingBuilder.endSession()
     }
-    
+
     public func recordEvent(_ event: TelemetryEvent) {
         if !self.configuration.isCollectionEnabled {
             return
         }
-        
+
         guard let pingBuilder: FocusEventPingBuilder = self.pingBuilders[FocusEventPingBuilder.PingType] as? FocusEventPingBuilder else {
             print("This configuration does not contain a TelemetryPingBuilder for \(FocusEventPingBuilder.PingType)")
             return
         }
-        
+
         DispatchQueue.main.async {
             pingBuilder.add(event: event)
 
-            if pingBuilder.numberOfEvents < self.configuration.maximumNumberOfEventsPerPing {
-                return
+            if pingBuilder.numberOfEvents >= self.configuration.maximumNumberOfEventsPerPing {
+                self.queue(pingType: FocusEventPingBuilder.PingType)
             }
-
-            let ping = pingBuilder.build(usingHandlers: self.beforeSerializePingHandlers[FocusEventPingBuilder.PingType])
-            self.storage.enqueue(ping: ping)
         }
     }
-    
+
     public func recordEvent(category: String, method: String, object: String) {
         recordEvent(TelemetryEvent(category: category, method: method, object: object))
     }
-    
+
     public func recordEvent(category: String, method: String, object: String, value: String?) {
         recordEvent(TelemetryEvent(category: category, method: method, object: object, value: value))
     }
-    
+
     public func recordEvent(category: String, method: String, object: String, value: String?, extras: [String : Any?]?) {
         recordEvent(TelemetryEvent(category: category, method: method, object: object, value: value, extras: extras))
     }
-    
+
     public func recordSearch(location: SearchesMeasurement.SearchLocation, searchEngine: String) {
         if !configuration.isCollectionEnabled {
             return
         }
-        
+
         guard let pingBuilder: CorePingBuilder = pingBuilders[CorePingBuilder.PingType] as? CorePingBuilder else {
             print("This configuration does not contain a TelemetryPingBuilder for \(CorePingBuilder.PingType)")
             return
         }
-        
+
         pingBuilder.search(location: location, searchEngine: searchEngine)
     }
 
