@@ -16,9 +16,10 @@ public class Telemetry {
     
     private let storage: TelemetryStorage
     private let scheduler: TelemetryScheduler
-    private var beforeSerializePingHandlers = [String: [BeforeSerializePingHandler]]()
-    private var pingBuilders: [String : TelemetryPingBuilder]
-    private var backgroundTasks: [String : UIBackgroundTaskIdentifier]
+
+    private var beforeSerializePingHandlers = [String : [BeforeSerializePingHandler]]()
+    private var pingBuilders = [String : TelemetryPingBuilder]()
+    private var backgroundTasks = [String : UIBackgroundTaskIdentifier]()
 
     // Use this to monitor upload errors from outside of this library
     public static let notificationUploadError = Notification.Name("NotificationTelemetryUploadError")
@@ -33,9 +34,6 @@ public class Telemetry {
         
         self.storage = TelemetryStorage(name: storageName, configuration: configuration)
         self.scheduler = TelemetryScheduler(configuration: configuration, storage: storage)
-        
-        self.pingBuilders = [:]
-        self.backgroundTasks = [:]
     }
     
     public func add<T: TelemetryPingBuilder>(pingBuilderType: T.Type) {
