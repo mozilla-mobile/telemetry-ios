@@ -19,8 +19,6 @@ public class TelemetryDefaults {
     public static let SessionConfigurationBackgroundIdentifier = "MozTelemetry"
     public static let DataDirectory = FileManager.SearchPathDirectory.cachesDirectory
     public static let ProfileFilename = "."
-    public static let TimeoutIntervalForRequest = TimeInterval(10)
-    public static let TimeoutIntervalForResource = TimeInterval(30)
     public static let MinNumberOfEventsPerUpload = 3
     public static let MaxNumberOfEventsPerPing = 500
     public static let MaxNumberOfPingsPerType = 40

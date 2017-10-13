@@ -17,31 +17,52 @@ public class TelemetryScheduler {
     init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
         self.configuration = configuration
         self.storage = storage
-        
         self.client = TelemetryClient(configuration: configuration)
     }
     
     public func scheduleUpload(pingType: String, completionHandler: @escaping () -> Void) {
-        if !hasReachedDailyUploadLimitForPingType(pingType) {
-            while let ping = storage.dequeue(pingType: pingType) {
-                client.upload(ping: ping) { (error) in
-                    if error != nil {
-                        print("Error uploading TelemetryPing: \(error!.localizedDescription)")
+        var pingSequence = storage.sequenceForPingType(pingType)
 
-                        ping.failedUploadAttempts += 1
-                        self.storage.enqueue(ping: ping)
-                    }
-                }
-                
-                incrementDailyUploadCountForPingType(pingType)
-                
-                if hasReachedDailyUploadLimitForPingType(pingType) {
-                    break
+        func uploadNextPing() {
+            guard !hasReachedDailyUploadLimitForPingType(pingType) else {
+                completionHandler()
+                return
+            }
+
+            // Get the next ping in the sequence.
+            var nextPing = pingSequence.next()
+
+            // If there are no remaining pings in the sequence, get a new sequence from
+            // storage in case any additional pings were queued while we were uploading.
+            if nextPing == nil {
+                pingSequence = storage.sequenceForPingType(pingType)
+                nextPing = pingSequence.next()
+            }
+
+            guard let ping = nextPing else {
+                completionHandler()
+                return
+            }
+
+            client.upload(ping: ping) { httpStatusCode, error in
+                let errorCode = (error as NSError?)?.code ?? 0
+                let errorRequiresDelete = [TelemetryError.InvalidUploadURL, TelemetryError.CannotGenerateJSON].contains(errorCode)
+
+                // Arguably, this could be (200..<500).contains(httpStatusCode) and 5xx errors could be handled more selectively to decide whether to delete the ping.
+                if httpStatusCode >= 200 || errorRequiresDelete {
+                    // Network call completed, successful or with error, delete the ping, and upload the next ping.
+                    pingSequence.remove()
+                    self.incrementDailyUploadCountForPingType(pingType)
+                    uploadNextPing()
+                } else {
+                    // Don't delete this ping even though we couldn't upload it right now. Just continue on
+                    // to the next ping.
+                    uploadNextPing()
                 }
             }
         }
-        
-        completionHandler()
+
+        uploadNextPing()
     }
 
     private func dailyUploadCountForPingType(_ pingType: String) -> Int {

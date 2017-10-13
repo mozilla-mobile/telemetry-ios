@@ -8,105 +8,128 @@
 
 import Foundation
 
+class TelemetryStorageSequence : Sequence, IteratorProtocol {
+    typealias Element = TelemetryPing
+
+    private let directoryEnumerator: FileManager.DirectoryEnumerator?
+
+    private var currentPing: TelemetryPing?
+    private var currentPingFile: URL?
+
+    init(directoryEnumerator: FileManager.DirectoryEnumerator?) {
+        self.directoryEnumerator = directoryEnumerator
+    }
+
+    func next() -> TelemetryPing? {
+        guard let directoryEnumerator = self.directoryEnumerator else {
+            return nil
+        }
+
+        while let url = directoryEnumerator.nextObject() as? URL {
+            do {
+                let data = try Data(contentsOf: url)
+                if let dict = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any],
+                    let ping = TelemetryPing.from(dictionary: dict) {
+                    currentPingFile = url
+                    return ping
+                } else {
+                    print("TelemetryStorageSequence.next(): Unable to deserialize JSON in file \(url.absoluteString)")
+                }
+            } catch {
+                print("TelemetryStorageSequence.next(): \(error.localizedDescription)")
+            }
+
+            // If we get here without returning a ping, something went wrong that
+            // is unrecoverable and we should just delete the file.
+            removePingFile(url)
+        }
+
+        currentPingFile = nil
+        return nil
+    }
+
+    func remove() {
+        guard let currentPingFile = self.currentPingFile else {
+            return
+        }
+
+        removePingFile(currentPingFile)
+    }
+
+    private func removePingFile(_ pingFile: URL) {
+        do {
+            try FileManager.default.removeItem(at: pingFile)
+        } catch {
+            print("TelemetryStorageSequence.removePingFile(\(pingFile.absoluteString)): \(error.localizedDescription)")
+        }
+    }
+}
+
 public class TelemetryStorage {
     private let name: String
     private let configuration: TelemetryConfiguration
-    
+
+    // Prepend to all key usage to avoid UserDefaults name collisions
+    private let keyPrefix = "telemetry-key-prefix-"
+
     public init(name: String, configuration: TelemetryConfiguration) {
         self.name = name
         self.configuration = configuration
     }
 
     public func get(valueFor key: String) -> Any? {
-        if let json = open(filename: "\(name)-values.json") {
-            if let dict = json as? [String : Any?] {
-                return dict[key] ?? nil
-            } else {
-                print("TelemetryStorage.get(): Value not found in \(name)-values.json for key '\(key)'")
-            }
-        }
-        
-        return nil
+        return UserDefaults.standard.object(forKey: keyPrefix + key)
     }
 
-    public func set(key: String, value: Any?) {
-        let json = open(filename: "\(name)-values.json")
-        var dict = json as? [String : Any?] ?? [String : Any?]()
-
-        dict[key] = value
-        
-        save(object: dict, toFile: "\(name)-values.json")
+    public func set(key: String, value: Any) {
+        UserDefaults.standard.set(value, forKey: keyPrefix + key)
     }
 
-    public func dequeue(pingType: String) -> TelemetryPing? {
-        if let json = open(filename: "\(name)-\(pingType).json") {
-            if var dicts = json as? [[String : Any]] {
-                if dicts.count > 0 {
-                    if let ping = TelemetryPing.from(dictionary: dicts.remove(at: 0)) {
-                        save(object: dicts, toFile: "\(name)-\(pingType).json")
-                        return ping
-                    } else {
-                        print("TelemetryStorage.dequeue(): Unable to deserialize TelemetryPing in \(name)-\(pingType).json at index 0")
-                        save(object: dicts, toFile: "\(name)-\(pingType).json")
-                    }
-                }
-            } else {
-                print("TelemetryStorage.dequeue(): Root array not found in \(name)-\(pingType).json")
-            }
-        }
-        
-        return nil
-    }
-    
     public func enqueue(ping: TelemetryPing) {
-        if let json = open(filename: "\(name)-\(ping.pingType).json") {
-            if var dicts = json as? [[String : Any]] {
-                dicts.append(ping.toDictionary())
-                
-                if dicts.count > configuration.maximumNumberOfPingsPerType {
-                    dicts.removeFirst(dicts.count - configuration.maximumNumberOfPingsPerType)
-                }
-                
-                save(object: dicts, toFile: "\(name)-\(ping.pingType).json")
-                return
-            } else {
-                print("TelemetryStorage.enqueue(): Root array not found in \(name)-\(ping.pingType).json")
-            }
+        guard let directory = directoryForPingType(ping.pingType) else {
+            print("TelemetryStorage.enqueue(): Could not get directory for pingType '\(ping.pingType)'")
+            return
         }
-        
-        save(object: [ping.toDictionary()], toFile: "\(name)-\(ping.pingType).json")
-    }
-    
-    private func open(filename: String) -> Any? {
+
+        var url = directory.appendingPathComponent("\(Date().timeIntervalSince1970).json")
+
         do {
-            let url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent(filename)
-            let data = try Data(contentsOf: url)
-            
-            return try JSONSerialization.jsonObject(with: data, options: [])
-        } catch {
-            print(error.localizedDescription)
-        }
-        
-        return nil
-    }
-    
-    private func save(object: Any, toFile filename: String) {
-        do {
-            var url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent(filename)
-            
-            let jsonData = try JSONSerialization.data(withJSONObject: object, options: .prettyPrinted)
+            // TODO: Check `configuration.maximumNumberOfPingsPerType` and remove oldest ping if necessary.
+
+            let jsonData = try JSONSerialization.data(withJSONObject: ping.toDictionary(), options: .prettyPrinted)
             if let jsonString = String(data: jsonData, encoding: .utf8) {
-                try jsonString.write(toFile: url.path, atomically: true, encoding: .utf8)
-                
+                try jsonString.write(to: url, atomically: true, encoding: .utf8)
+
+                // Exclude this file from iCloud backups.
                 var resourceValues = URLResourceValues()
                 resourceValues.isExcludedFromBackup = true
-
                 try url.setResourceValues(resourceValues)
             } else {
                 print("ERROR: Unable to generate JSON data")
             }
         } catch {
-            print(error.localizedDescription)
+            print("TelemetryStorage.enqueue(): \(error.localizedDescription)")
+        }
+    }
+    
+    func sequenceForPingType(_ pingType: String) -> TelemetryStorageSequence {
+        guard let directory = directoryForPingType(pingType) else {
+            print("TelemetryStorage.sequenceForPingType(): Could not get directory for pingType '\(pingType)'")
+            return TelemetryStorageSequence(directoryEnumerator: nil)
+        }
+        
+        let directoryEnumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles, errorHandler: nil)
+        return TelemetryStorageSequence(directoryEnumerator: directoryEnumerator)
+    }
+
+    private func directoryForPingType(_ pingType: String) -> URL? {
+        do {
+            let url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("\(name)-\(pingType)")
+            try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
+            return url
+        } catch {
+            print("TelemetryStorage.directoryForPingType(): \(error.localizedDescription)")
+            return nil
         }
     }
 }

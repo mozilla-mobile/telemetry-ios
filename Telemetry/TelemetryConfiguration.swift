@@ -20,8 +20,6 @@ public class TelemetryConfiguration {
     public var sessionConfigurationBackgroundIdentifier = TelemetryDefaults.SessionConfigurationBackgroundIdentifier
     public var dataDirectory = TelemetryDefaults.DataDirectory
     public var profileFilename = TelemetryDefaults.ProfileFilename
-    public var timeoutIntervalForRequest = TelemetryDefaults.TimeoutIntervalForRequest
-    public var timeoutIntervalForResource = TelemetryDefaults.TimeoutIntervalForResource
     public var minimumEventsForUpload = TelemetryDefaults.MinNumberOfEventsPerUpload
     public var maximumNumberOfEventsPerPing = TelemetryDefaults.MaxNumberOfEventsPerPing
     public var maximumNumberOfPingsPerType = TelemetryDefaults.MaxNumberOfPingsPerType
@@ -39,7 +37,7 @@ public class TelemetryConfiguration {
 
         self.appName = info?["CFBundleDisplayName"] as? String ?? TelemetryDefaults.AppName
         self.appVersion = info?["CFBundleShortVersionString"] as? String ?? TelemetryDefaults.AppVersion
-        self.buildId = info?["CFBundleVersionKey"] as? String ?? TelemetryDefaults.BuildId
+        self.buildId = info?["CFBundleVersion"] as? String ?? TelemetryDefaults.BuildId
         
         self.userDefaultsSuiteName = nil
         self.measuredUserDefaults = []
