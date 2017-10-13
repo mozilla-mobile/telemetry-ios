@@ -51,30 +51,32 @@ public class ArchitectureMeasurement: StaticTelemetryMeasurement {
 
 public class ClientIdMeasurement: TelemetryMeasurement {
     private let storage: TelemetryStorage
-    
+
     private var value: String?
-    
+
     init(storage: TelemetryStorage) {
         self.storage = storage
-        
+
         super.init(name: "clientId")
     }
-    
+
     override func flush() -> Any? {
-        if value != nil {
+        if let value = self.value {
             return value
         }
-        
+
         if let clientId = storage.get(valueFor: "clientId") as? String {
             value = clientId
-            return value
+
+            return clientId
         }
-        
-        value = UUID.init().uuidString
-        
-        storage.set(key: "clientId", value: value)
-        
-        return value
+
+        let clientId = UUID.init().uuidString
+
+        storage.set(key: "clientId", value: clientId)
+        value = clientId
+
+        return clientId
     }
 }
 

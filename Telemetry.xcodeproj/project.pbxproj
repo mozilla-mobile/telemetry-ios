@@ -93,7 +93,7 @@
 		D0E178491E773D0200CD2264 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D0E1784B1E773D0200CD2264 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D0F91B7F1EAE8694001AB82C /* TelemetryUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TelemetryUtils.swift; sourceTree = "<group>"; };
-		D0F91B811EAFFCB2001AB82C /* TelemetryPlayground.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = TelemetryPlayground.playground; sourceTree = "<group>"; };
+		D0F91B811EAFFCB2001AB82C /* TelemetryPlayground.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = TelemetryPlayground.playground; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
