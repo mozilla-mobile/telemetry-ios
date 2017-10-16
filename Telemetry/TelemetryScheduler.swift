@@ -21,7 +21,7 @@ public class TelemetryScheduler {
     }
     
     public func scheduleUpload(pingType: String, completionHandler: @escaping () -> Void) {
-        var pingSequence = storage.sequenceForPingType(pingType)
+        var pingSequence = storage.sequenceForPingType(pingType, includeRetryPings: true)
 
         func uploadNextPing() {
             guard !hasReachedDailyUploadLimitForPingType(pingType) else {
@@ -48,17 +48,20 @@ public class TelemetryScheduler {
                 let errorCode = (error as NSError?)?.code ?? 0
                 let errorRequiresDelete = [TelemetryError.InvalidUploadURL, TelemetryError.CannotGenerateJSON].contains(errorCode)
 
-                // Arguably, this could be (200..<500).contains(httpStatusCode) and 5xx errors could be handled more selectively to decide whether to delete the ping.
+                self.incrementDailyUploadCountForPingType(pingType)
+
+                // Determine whether to delete the ping or move it to the "retry" directory.
                 if httpStatusCode >= 200 || errorRequiresDelete {
-                    // Network call completed, successful or with error, delete the ping, and upload the next ping.
+                    // Delete the ping since the upload either completed successfully or with an error that
+                    // would prohibit us from ever uploading it successfully.
                     pingSequence.remove()
-                    self.incrementDailyUploadCountForPingType(pingType)
-                    uploadNextPing()
                 } else {
-                    // Don't delete this ping even though we couldn't upload it right now. Just continue on
-                    // to the next ping.
-                    uploadNextPing()
+                    // Move the ping to the "retry" directory since we encountered either a temporary server
+                    // error or network connectivity issues.
+                    pingSequence.moveToRetryDirectory()
                 }
+
+                uploadNextPing()
             }
         }
 

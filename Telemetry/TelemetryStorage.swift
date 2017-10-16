@@ -11,37 +11,51 @@ import Foundation
 class TelemetryStorageSequence : Sequence, IteratorProtocol {
     typealias Element = TelemetryPing
 
-    private let directoryEnumerator: FileManager.DirectoryEnumerator?
+    private let files: [URL]
+    
+    private var index = -1
 
     private var currentPing: TelemetryPing?
     private var currentPingFile: URL?
 
-    init(directoryEnumerator: FileManager.DirectoryEnumerator?) {
-        self.directoryEnumerator = directoryEnumerator
+    init(files: [URL]) {
+        self.files = files
     }
 
     func next() -> TelemetryPing? {
-        guard let directoryEnumerator = self.directoryEnumerator else {
-            return nil
-        }
+        index += 1
 
-        while let url = directoryEnumerator.nextObject() as? URL {
+        while files.count > index {
+            let url = files[index]
+            
+            var isDirectory: ObjCBool = false
+
+            guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory), !isDirectory.boolValue else {
+                index += 1
+                continue
+            }
+
+            currentPingFile = url
+
             do {
                 let data = try Data(contentsOf: url)
                 if let dict = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any],
                     let ping = TelemetryPing.from(dictionary: dict) {
-                    currentPingFile = url
                     return ping
                 } else {
                     print("TelemetryStorageSequence.next(): Unable to deserialize JSON in file \(url.absoluteString)")
                 }
             } catch {
-                print("TelemetryStorageSequence.next(): \(error.localizedDescription)")
+                print("TelemetryStorageSequence.next(): \(error.localizedDescription) (\(url))")
             }
 
             // If we get here without returning a ping, something went wrong that
             // is unrecoverable and we should just delete the file.
-            removePingFile(url)
+            remove()
+
+            // Bump the index since we didn't return a ping so we can try getting
+            // the next ping file if one exists.
+            index += 1
         }
 
         currentPingFile = nil
@@ -53,14 +67,30 @@ class TelemetryStorageSequence : Sequence, IteratorProtocol {
             return
         }
 
-        removePingFile(currentPingFile)
+        do {
+            try FileManager.default.removeItem(at: currentPingFile)
+        } catch {
+            print("TelemetryStorageSequence.removePingFile(\(currentPingFile.absoluteString)): \(error.localizedDescription)")
+        }
     }
 
-    private func removePingFile(_ pingFile: URL) {
+    func moveToRetryDirectory() {
+        guard let currentPingFile = self.currentPingFile else {
+            return
+        }
+
+        let queueDirectory = currentPingFile.deletingLastPathComponent()
+        let retryDirectory = queueDirectory.appendingPathComponent("retry", isDirectory: true)
+
+        let retryPingFile = retryDirectory.appendingPathComponent(currentPingFile.lastPathComponent)
+
         do {
-            try FileManager.default.removeItem(at: pingFile)
+            try FileManager.default.createDirectory(at: retryDirectory, withIntermediateDirectories: true, attributes: nil)
+            try FileManager.default.moveItem(at: currentPingFile, to: retryPingFile)
         } catch {
-            print("TelemetryStorageSequence.removePingFile(\(pingFile.absoluteString)): \(error.localizedDescription)")
+            print("TelemetryStorageSequence.moveToRetryDirectory(): \(error.localizedDescription)")
+            remove()
+            return
         }
     }
 }
@@ -86,7 +116,7 @@ public class TelemetryStorage {
     }
 
     public func enqueue(ping: TelemetryPing) {
-        guard let directory = directoryForPingType(ping.pingType) else {
+        guard let directory = queueDirectoryForPingType(ping.pingType) else {
             print("TelemetryStorage.enqueue(): Could not get directory for pingType '\(ping.pingType)'")
             return
         }
@@ -111,24 +141,58 @@ public class TelemetryStorage {
             print("TelemetryStorage.enqueue(): \(error.localizedDescription)")
         }
     }
-    
-    func sequenceForPingType(_ pingType: String) -> TelemetryStorageSequence {
-        guard let directory = directoryForPingType(pingType) else {
-            print("TelemetryStorage.sequenceForPingType(): Could not get directory for pingType '\(pingType)'")
-            return TelemetryStorageSequence(directoryEnumerator: nil)
+
+    func sequenceForPingType(_ pingType: String, includeRetryPings: Bool = false) -> TelemetryStorageSequence {
+        guard let queueDirectory = queueDirectoryForPingType(pingType) else {
+            print("TelemetryStorage.sequenceForPingType(): Could not get queue directory for pingType '\(pingType)'")
+            return TelemetryStorageSequence(files: [])
         }
-        
-        let directoryEnumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles, errorHandler: nil)
-        return TelemetryStorageSequence(directoryEnumerator: directoryEnumerator)
+
+        do {
+            let queueFiles = try FileManager.default.contentsOfDirectory(at: queueDirectory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
+
+            if includeRetryPings {
+                if let retryDirectory = retryDirectoryForPingType(pingType) {
+                    do {
+                        let retryFiles = try FileManager.default.contentsOfDirectory(at: retryDirectory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles)
+                        return TelemetryStorageSequence(files: retryFiles + queueFiles)
+                    } catch {
+                        print("TelemetryStorage.sequenceForPingType(): Could not get files in retry directory '\(retryDirectory)'")
+                    }
+                } else {
+                    print("TelemetryStorage.sequenceForPingType(): Could not get retry directory for pingType '\(pingType)'")
+                }
+            }
+            
+            return TelemetryStorageSequence(files: queueFiles)
+        } catch {
+            print("TelemetryStorage.sequenceForPingType(): Could not get files in queue directory '\(queueDirectory)'")
+            return TelemetryStorageSequence(files: [])
+        }
     }
 
-    private func directoryForPingType(_ pingType: String) -> URL? {
+    private func queueDirectoryForPingType(_ pingType: String) -> URL? {
         do {
-            let url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("\(name)-\(pingType)")
+            let url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("\(name)-\(pingType)", isDirectory: true)
             try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
             return url
         } catch {
-            print("TelemetryStorage.directoryForPingType(): \(error.localizedDescription)")
+            print("TelemetryStorage.queueDirectoryForPingType(): \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    private func retryDirectoryForPingType(_ pingType: String) -> URL? {
+        guard let queueDirectory = queueDirectoryForPingType(pingType) else {
+            return nil
+        }
+
+        do {
+            let url = queueDirectory.appendingPathComponent("retry", isDirectory: true)
+            try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
+            return url
+        } catch {
+            print("TelemetryStorage.retryDirectoryForPingType(): \(error.localizedDescription)")
             return nil
         }
     }
