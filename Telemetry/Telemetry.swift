@@ -14,7 +14,7 @@ public typealias BeforeSerializePingHandler = ([String: Any?]) -> [String: Any?]
 public class Telemetry {
     public let configuration: TelemetryConfiguration
     
-    private let storage: TelemetryStorage
+    let storage: TelemetryStorage
     private let scheduler: TelemetryScheduler
 
     private var beforeSerializePingHandlers = [String : [BeforeSerializePingHandler]]()
