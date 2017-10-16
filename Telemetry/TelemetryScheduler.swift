@@ -29,17 +29,7 @@ public class TelemetryScheduler {
                 return
             }
 
-            // Get the next ping in the sequence.
-            var nextPing = pingSequence.next()
-
-            // If there are no remaining pings in the sequence, get a new sequence from
-            // storage in case any additional pings were queued while we were uploading.
-            if nextPing == nil {
-                pingSequence = storage.sequenceForPingType(pingType)
-                nextPing = pingSequence.next()
-            }
-
-            guard let ping = nextPing else {
+            guard let ping = pingSequence.next() else {
                 completionHandler()
                 return
             }
