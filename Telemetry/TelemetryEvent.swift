@@ -18,7 +18,7 @@ public class TelemetryEvent {
     public static let MaxLengthExtraKey = 15
     public static let MaxLengthExtraValue = 80
     
-    public static let ExtrasDefaultValue = "Extras"
+    public static let ExtrasDefaultValue = ""
 
     private static let AppLaunchTimestamp: Date = Date()
 
