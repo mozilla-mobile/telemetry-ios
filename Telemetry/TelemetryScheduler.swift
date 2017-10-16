@@ -45,7 +45,7 @@ public class TelemetryScheduler {
             }
 
             client.upload(ping: ping) { httpStatusCode, error in
-                let errorCode = (error as NSError?)?.code ?? 0
+                let errorCode = error?.code ?? 0
                 let errorRequiresDelete = [TelemetryError.InvalidUploadURL, TelemetryError.CannotGenerateJSON].contains(errorCode)
 
                 self.incrementDailyUploadCountForPingType(pingType)
@@ -56,9 +56,15 @@ public class TelemetryScheduler {
                     // would prohibit us from ever uploading it successfully.
                     pingSequence.remove()
                 } else {
-                    // Move the ping to the "retry" directory since we encountered either a temporary server
-                    // error or network connectivity issues.
-                    pingSequence.moveToRetryDirectory()
+                    if error == nil {
+                        // Move the ping to the "retry" directory since we encountered a temporary server
+                        // issue.
+                        pingSequence.moveToRetryDirectory()
+                    } else {
+                        // Since we got some other type of network error, simply bail out of the loop since
+                        // any subsequent requests are also likely to fail.
+                        return
+                    }
                 }
 
                 uploadNextPing()
