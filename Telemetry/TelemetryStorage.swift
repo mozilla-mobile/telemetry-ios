@@ -132,4 +132,14 @@ public class TelemetryStorage {
             return nil
         }
     }
+
+    func clear(pingType: String) {
+        guard let url = directoryForPingType(pingType) else { return }
+        do {
+            try FileManager.default.removeItem(at: url)
+        }
+        catch {
+            print("\(#function) \(error)")
+        }
+    }
 }
