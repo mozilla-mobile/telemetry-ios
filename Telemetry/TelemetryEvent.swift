@@ -26,7 +26,6 @@ public class TelemetryEvent {
     public let method: String
     public let object: String
     public let value: String?
-
     public let timestamp: UInt64
 
     private var extras: [String : String]
@@ -88,7 +87,6 @@ public class TelemetryEvent {
 
         if !extras.isEmpty {
             let value = self.value ?? TelemetryEvent.ExtrasDefaultValue
-
             array.append(value)
             array.append(extras)
         }
