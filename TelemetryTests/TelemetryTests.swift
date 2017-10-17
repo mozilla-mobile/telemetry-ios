@@ -28,8 +28,10 @@ class TelemetryTests: XCTestCase {
         telemetryConfig.dataDirectory = .documentDirectory
 
         Telemetry.default.storage.clear(pingType: CorePingBuilder.PingType)
+        Telemetry.default.storage.set(key: "\(CorePingBuilder.PingType)-lastUploadTimestamp", value: 0)
 
         Telemetry.default.add(pingBuilderType: CorePingBuilder.self)
+
     }
 
     override func tearDown() {
