@@ -24,12 +24,8 @@ public class TelemetryScheduler {
         var pingSequence = storage.sequenceForPingType(pingType)
 
         func uploadNextPing() {
-            guard !hasReachedDailyUploadLimitForPingType(pingType) else {
-                completionHandler()
-                return
-            }
-
-            guard let ping = pingSequence.next() else {
+            guard !hasReachedDailyUploadLimitForPingType(pingType),
+                let ping = pingSequence.next() else {
                 completionHandler()
                 return
             }
@@ -39,15 +35,13 @@ public class TelemetryScheduler {
                 let errorRequiresDelete = [TelemetryError.InvalidUploadURL, TelemetryError.CannotGenerateJSON].contains(errorCode)
 
                 // Arguably, this could be (200..<500).contains(httpStatusCode) and 5xx errors could be handled more selectively to decide whether to delete the ping.
-                if httpStatusCode >= 200 || errorRequiresDelete {
+                if (200..<500).contains(httpStatusCode) || errorRequiresDelete {
                     // Network call completed, successful or with error, delete the ping, and upload the next ping.
                     pingSequence.remove()
                     self.incrementDailyUploadCountForPingType(pingType)
                     uploadNextPing()
                 } else {
-                    // Don't delete this ping even though we couldn't upload it right now. Just continue on
-                    // to the next ping.
-                    uploadNextPing()
+                    completionHandler()
                 }
             }
         }
