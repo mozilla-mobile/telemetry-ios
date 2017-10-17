@@ -23,7 +23,7 @@ public class TelemetryPing {
         self.timestamp = timestamp
     }
     
-    public static func from(dictionary: [String : Any]) -> TelemetryPing? {
+    static func from(dictionary: [String : Any]) -> TelemetryPing? {
         if let pingType = dictionary["pingType"] as? String,
            let documentId = dictionary["documentId"] as? String,
            let uploadPath = dictionary["uploadPath"] as? String,
@@ -35,11 +35,11 @@ public class TelemetryPing {
         return nil
     }
     
-    public func toDictionary() -> [String : Any] {
+    func toDictionary() -> [String : Any] {
         return ["timestamp": timestamp, "pingType": pingType, "documentId": documentId, "uploadPath": uploadPath, "measurements": measurements]
     }
     
-    public func measurementsJSON() -> Data? {
+    func measurementsJSON() -> Data? {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: measurements, options: [])
             return jsonData

@@ -22,7 +22,7 @@ public class TelemetryPingBuilder {
     fileprivate let configuration: TelemetryConfiguration
     fileprivate let storage: TelemetryStorage
 
-    public var canBuild: Bool {
+    var canBuild: Bool {
         get { return true }
     }
     
@@ -37,7 +37,7 @@ public class TelemetryPingBuilder {
         measurements.append(measurement)
     }
     
-    public func build(usingHandlers handlers: [BeforeSerializePingHandler]?) -> TelemetryPing {
+    func build(usingHandlers handlers: [BeforeSerializePingHandler]?) -> TelemetryPing {
         let pingType = type(of: self).PingType
         let documentId = UUID.init().uuidString
         let uploadPath = getUploadPath(withDocumentId: documentId)
@@ -50,7 +50,7 @@ public class TelemetryPingBuilder {
         return TelemetryPing(pingType: pingType, documentId: documentId, uploadPath: uploadPath, measurements: data, timestamp: Date().timeIntervalSince1970)
     }
     
-    public func getUploadPath(withDocumentId documentId: String) -> String {
+    func getUploadPath(withDocumentId documentId: String) -> String {
         let pingType = type(of: self).PingType
         let appName = configuration.appName
         let appVersion = configuration.appVersion
@@ -109,11 +109,11 @@ public class CorePingBuilder: TelemetryPingBuilder {
         self.add(measurement: self.searchesMeasurement)
     }
 
-    override public func getUploadPath(withDocumentId documentId: String) -> String {
+    override func getUploadPath(withDocumentId documentId: String) -> String {
         return super.getUploadPath(withDocumentId: documentId) + "?v=4"
     }
 
-    public func startSession() {
+    func startSession() {
         do {
             try sessionDurationMeasurement.start()
         } catch {
@@ -124,7 +124,7 @@ public class CorePingBuilder: TelemetryPingBuilder {
         sessionCountMeasurement.increment()
     }
     
-    public func endSession() {
+    func endSession() {
         do {
             try sessionDurationMeasurement.end()
         } catch {
@@ -148,13 +148,13 @@ public class FocusEventPingBuilder: TelemetryPingBuilder {
     
     private let eventsMeasurement: EventsMeasurement
     
-    public var numberOfEvents: Int {
+    var numberOfEvents: Int {
         get {
             return eventsMeasurement.numberOfEvents
         }
     }
     
-    override public var canBuild: Bool {
+    override var canBuild: Bool {
         get {
             return eventsMeasurement.numberOfEvents >= configuration.minimumEventsForUpload
         }
@@ -178,7 +178,7 @@ public class FocusEventPingBuilder: TelemetryPingBuilder {
         self.add(measurement: self.eventsMeasurement)
     }
     
-    override public func getUploadPath(withDocumentId documentId: String) -> String {
+    override func getUploadPath(withDocumentId documentId: String) -> String {
         return super.getUploadPath(withDocumentId: documentId) + "?v=4"
     }
     

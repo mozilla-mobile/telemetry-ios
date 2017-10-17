@@ -72,20 +72,20 @@ public class TelemetryStorage {
     // Prepend to all key usage to avoid UserDefaults name collisions
     private let keyPrefix = "telemetry-key-prefix-"
 
-    public init(name: String, configuration: TelemetryConfiguration) {
+    init(name: String, configuration: TelemetryConfiguration) {
         self.name = name
         self.configuration = configuration
     }
 
-    public func get(valueFor key: String) -> Any? {
+    func get(valueFor key: String) -> Any? {
         return UserDefaults.standard.object(forKey: keyPrefix + key)
     }
 
-    public func set(key: String, value: Any) {
+    func set(key: String, value: Any) {
         UserDefaults.standard.set(value, forKey: keyPrefix + key)
     }
 
-    public func enqueue(ping: TelemetryPing) {
+    func enqueue(ping: TelemetryPing) {
         guard let directory = directoryForPingType(ping.pingType) else {
             print("TelemetryStorage.enqueue(): Could not get directory for pingType '\(ping.pingType)'")
             return

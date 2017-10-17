@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class TelemetryScheduler {
+class TelemetryScheduler {
     private let configuration: TelemetryConfiguration
     private let storage: TelemetryStorage
     
@@ -20,7 +20,7 @@ public class TelemetryScheduler {
         self.client = TelemetryClient(configuration: configuration)
     }
     
-    public func scheduleUpload(pingType: String, completionHandler: @escaping () -> Void) {
+    func scheduleUpload(pingType: String, completionHandler: @escaping () -> Void) {
         var pingSequence = storage.sequenceForPingType(pingType)
 
         func uploadNextPing() {
