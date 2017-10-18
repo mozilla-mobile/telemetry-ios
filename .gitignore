@@ -34,3 +34,5 @@ playground.xcworkspace
 
 ## Carthage
 Carthage/
+Cartfile
+Cartfile.resolved

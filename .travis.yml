@@ -1,0 +1,6 @@
+language: swift
+xcode_project: Telemetry.xcodeproj 
+xcode_scheme: Telemetry
+before_install: 
+ - brew update
+ - brew install carthage
