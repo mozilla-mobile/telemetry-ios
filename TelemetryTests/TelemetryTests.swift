@@ -85,9 +85,9 @@ class TelemetryTests: XCTestCase {
 
         let wait = expectation(description: "process async events")
         XCTWaiter().wait(for: [wait], timeout: 1)
-        for _ in 0..<expectedFilesUploaded {
-            XCTAssert(Telemetry.default.storage.sequence(forPingType: CorePingBuilder.PingType).next() != nil, "Confirm upload file exists")
-        }
+        print(countFilesOnDisk())
+        XCTAssert(countFilesOnDisk() == filesOnDisk, "Confirm upload file exists")
+
         wait.fulfill() // required so it doesn't intefere with waitForExpectations
 
         expectation = expectation(description: "Completed upload")
