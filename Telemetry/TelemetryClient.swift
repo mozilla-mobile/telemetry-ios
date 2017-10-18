@@ -8,15 +8,15 @@
 
 import Foundation
 
-public class TelemetryClient: NSObject {
+class TelemetryClient: NSObject {
     private let configuration: TelemetryConfiguration
 
-    public init(configuration: TelemetryConfiguration) {
+    init(configuration: TelemetryConfiguration) {
         self.configuration = configuration
     }
 
     // The closure is called with an HTTP status code (zero if unavailable) and an error
-    public func upload(ping: TelemetryPing, completionHandler: @escaping (Int, Error?) -> Void) -> Void {
+    func upload(ping: TelemetryPing, completionHandler: @escaping (Int, Error?) -> Void) -> Void {
         guard let url = URL(string: "\(configuration.serverEndpoint)\(ping.uploadPath)") else {
             let error = NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.InvalidUploadURL, userInfo: [NSLocalizedDescriptionKey: "Invalid upload URL: \(configuration.serverEndpoint)\(ping.uploadPath)"])
             

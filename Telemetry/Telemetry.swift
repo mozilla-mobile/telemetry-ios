@@ -12,9 +12,11 @@ import UIKit
 public typealias BeforeSerializePingHandler = ([String: Any?]) -> [String: Any?]
 
 public class Telemetry {
-    public let configuration: TelemetryConfiguration
-    
+    public let configuration = TelemetryConfiguration()
+
+    let app = AppEvents()
     let storage: TelemetryStorage
+
     private let scheduler: TelemetryScheduler
 
     private var beforeSerializePingHandlers = [String : [BeforeSerializePingHandler]]()
@@ -28,10 +30,7 @@ public class Telemetry {
         return Telemetry(storageName: "MozTelemetry-Default")
     }()
 
-    let app = AppEvents()
     public init(storageName: String) {
-        self.configuration = TelemetryConfiguration()
-        
         self.storage = TelemetryStorage(name: storageName, configuration: configuration)
         self.scheduler = TelemetryScheduler(configuration: configuration, storage: storage)
     }
@@ -42,17 +41,17 @@ public class Telemetry {
         backgroundTasks[pingBuilderType.PingType] = UIBackgroundTaskInvalid
     }
 
-    public func hasPingType(_ pingType: String) -> Bool {
+    func hasPingType(_ pingType: String) -> Bool {
         return pingBuilders[pingType] != nil
     }
 
-    public func forEachPingType(_ iterator: (String) -> Void) {
+    func forEachPingType(_ iterator: (String) -> Void) {
         for (pingType, _) in pingBuilders {
             iterator(pingType)
         }
     }
 
-    public func queue(pingType: String) {
+    func queue(pingType: String) {
         if !self.configuration.isCollectionEnabled {
             return
         }
@@ -72,7 +71,7 @@ public class Telemetry {
         }
     }
 
-    public func scheduleUpload(pingType: String) {
+    func scheduleUpload(pingType: String) {
         guard configuration.isUploadEnabled,
             let backgroundTask = backgroundTasks[pingType],
             backgroundTask == UIBackgroundTaskInvalid else {
@@ -100,7 +99,7 @@ public class Telemetry {
         }
     }
 
-    public func recordSessionStart() {
+    func recordSessionStart() {
         if !configuration.isCollectionEnabled {
             return
         }
@@ -113,7 +112,7 @@ public class Telemetry {
         pingBuilder.startSession()
     }
 
-    public func recordSessionEnd() {
+    func recordSessionEnd() {
         if !configuration.isCollectionEnabled {
             return
         }
