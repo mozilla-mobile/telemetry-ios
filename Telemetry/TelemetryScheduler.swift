@@ -21,10 +21,10 @@ class TelemetryScheduler {
     }
     
     func scheduleUpload(pingType: String, completionHandler: @escaping () -> Void) {
-        var pingSequence = storage.sequenceForPingType(pingType)
+        var pingSequence = storage.sequence(forPingType: pingType)
 
         func uploadNextPing() {
-            guard !hasReachedDailyUploadLimitForPingType(pingType),
+            guard !hasReachedDailyUploadLimit(forPingType: pingType),
                 let ping = pingSequence.next() else {
                 completionHandler()
                 return
@@ -38,7 +38,7 @@ class TelemetryScheduler {
                 if (200..<500).contains(httpStatusCode) || errorRequiresDelete {
                     // Network call completed, successful or with error, delete the ping, and upload the next ping.
                     pingSequence.remove()
-                    self.incrementDailyUploadCountForPingType(pingType)
+                    self.incrementDailyUploadCount(forPingType: pingType)
                     uploadNextPing()
                 } else {
                     completionHandler()
@@ -49,28 +49,28 @@ class TelemetryScheduler {
         uploadNextPing()
     }
 
-    private func dailyUploadCountForPingType(_ pingType: String) -> Int {
+    private func dailyUploadCount(forPingType pingType: String) -> Int {
         return storage.get(valueFor: "\(pingType)-dailyUploadCount") as? Int ?? 0
     }
     
-    private func lastUploadTimestampForPingType(_ pingType: String) -> TimeInterval {
+    private func lastUploadTimestamp(forPingType pingType: String) -> TimeInterval {
         return storage.get(valueFor: "\(pingType)-lastUploadTimestamp") as? TimeInterval ?? Date().timeIntervalSince1970
     }
     
-    private func incrementDailyUploadCountForPingType(_ pingType: String) {
-        let dailyUploadCount = dailyUploadCountForPingType(pingType) + 1
-        storage.set(key: "\(pingType)-dailyUploadCount", value: dailyUploadCount)
+    private func incrementDailyUploadCount(forPingType pingType: String) {
+        let uploadCount = dailyUploadCount(forPingType: pingType) + 1
+        storage.set(key: "\(pingType)-dailyUploadCount", value: uploadCount)
         
         let lastUploadTimestamp = Date().timeIntervalSince1970
         storage.set(key: "\(pingType)-lastUploadTimestamp", value: lastUploadTimestamp)
     }
     
-    private func hasReachedDailyUploadLimitForPingType(_ pingType: String) -> Bool {
-        if !isTimestampFromToday(timestamp: lastUploadTimestampForPingType(pingType)) {
+    private func hasReachedDailyUploadLimit(forPingType pingType: String) -> Bool {
+        if !isTimestampFromToday(timestamp: lastUploadTimestamp(forPingType: pingType)) {
             return false
         }
         
-        return dailyUploadCountForPingType(pingType) >= configuration.maximumNumberOfPingUploadsPerDay
+        return dailyUploadCount(forPingType: pingType) >= configuration.maximumNumberOfPingUploadsPerDay
     }
     
     private func isTimestampFromToday(timestamp: TimeInterval) -> Bool {

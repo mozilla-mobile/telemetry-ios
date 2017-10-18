@@ -86,7 +86,7 @@ class TelemetryTests: XCTestCase {
         let wait = expectation(description: "process async events")
         XCTWaiter().wait(for: [wait], timeout: 1)
         for _ in 0..<expectedFilesUploaded {
-            XCTAssert(Telemetry.default.storage.sequenceForPingType(CorePingBuilder.PingType).next() != nil, "Confirm upload file exists")
+            XCTAssert(Telemetry.default.storage.sequence(forPingType: CorePingBuilder.PingType).next() != nil, "Confirm upload file exists")
         }
         wait.fulfill() // required so it doesn't intefere with waitForExpectations
 
@@ -110,7 +110,7 @@ class TelemetryTests: XCTestCase {
 
     private func countFilesOnDisk() -> Int {
         var result = 0
-        let seq = Telemetry.default.storage.sequenceForPingType(CorePingBuilder.PingType)
+        let seq = Telemetry.default.storage.sequence(forPingType: CorePingBuilder.PingType)
         while seq.next() != nil {
             result += 1
         }

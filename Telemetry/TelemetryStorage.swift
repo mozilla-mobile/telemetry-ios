@@ -41,7 +41,7 @@ class TelemetryStorageSequence : Sequence, IteratorProtocol {
 
             // If we get here without returning a ping, something went wrong that
             // is unrecoverable and we should just delete the file.
-            removePingFile(url)
+            remove(pingFile: url)
         }
 
         currentPingFile = nil
@@ -53,10 +53,10 @@ class TelemetryStorageSequence : Sequence, IteratorProtocol {
             return
         }
 
-        removePingFile(currentPingFile)
+        remove(pingFile: currentPingFile)
     }
 
-    private func removePingFile(_ pingFile: URL) {
+    private func remove(pingFile: URL) {
         do {
             try FileManager.default.removeItem(at: pingFile)
         } catch {
@@ -86,7 +86,7 @@ public class TelemetryStorage {
     }
 
     func enqueue(ping: TelemetryPing) {
-        guard let directory = directoryForPingType(ping.pingType) else {
+        guard let directory = directory(forPingType: ping.pingType) else {
             print("TelemetryStorage.enqueue(): Could not get directory for pingType '\(ping.pingType)'")
             return
         }
@@ -112,8 +112,8 @@ public class TelemetryStorage {
         }
     }
     
-    func sequenceForPingType(_ pingType: String) -> TelemetryStorageSequence {
-        guard let directory = directoryForPingType(pingType) else {
+    func sequence(forPingType pingType: String) -> TelemetryStorageSequence {
+        guard let directory = directory(forPingType: pingType) else {
             print("TelemetryStorage.sequenceForPingType(): Could not get directory for pingType '\(pingType)'")
             return TelemetryStorageSequence(directoryEnumerator: nil)
         }
@@ -122,7 +122,7 @@ public class TelemetryStorage {
         return TelemetryStorageSequence(directoryEnumerator: directoryEnumerator)
     }
 
-    private func directoryForPingType(_ pingType: String) -> URL? {
+    private func directory(forPingType pingType: String) -> URL? {
         do {
             let url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("\(name)-\(pingType)")
             try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
@@ -134,7 +134,7 @@ public class TelemetryStorage {
     }
 
     func clear(pingType: String) {
-        guard let url = directoryForPingType(pingType) else { return }
+        guard let url = directory(forPingType: pingType) else { return }
         do {
             try FileManager.default.removeItem(at: url)
         }
