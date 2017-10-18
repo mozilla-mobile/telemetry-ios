@@ -1,4 +1,5 @@
-language: swift
+language: objective-c
+osx_image: xcode9.0
 xcode_project: Telemetry.xcodeproj 
 xcode_scheme: Telemetry
 before_install: 
