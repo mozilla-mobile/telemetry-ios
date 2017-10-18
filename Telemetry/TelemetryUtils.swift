@@ -4,6 +4,11 @@
 
 import Foundation
 
+#if !DEBUG
+    // Turn print into a no-op in non-debug builds.
+    func print(_ items: Any..., separator: String = " ", terminator: String = "\n") {}
+#endif
+
 class TelemetryUtils {
     static func asString(_ object: Any?) -> String {
         if let string = object as? String {
