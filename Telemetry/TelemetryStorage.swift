@@ -12,12 +12,23 @@ class TelemetryStorageSequence : Sequence, IteratorProtocol {
     typealias Element = TelemetryPing
 
     private let directoryEnumerator: FileManager.DirectoryEnumerator?
+    private let configuration: TelemetryConfiguration
 
     private var currentPing: TelemetryPing?
     private var currentPingFile: URL?
 
-    init(directoryEnumerator: FileManager.DirectoryEnumerator?) {
+    init(directoryEnumerator: FileManager.DirectoryEnumerator?, configuration: TelemetryConfiguration) {
         self.directoryEnumerator = directoryEnumerator
+        self.configuration = configuration
+    }
+
+    func isStale(pingFile: URL) -> Bool {
+        guard let time = TelemetryStorage.extractTimestampFromName(pingFile: pingFile) else {
+            return false
+        }
+
+        let days = TelemetryUtils.daysBetween(start: time, end: Date())
+        return days > configuration.maximumAgeOfPingInDays
     }
 
     func next() -> TelemetryPing? {
@@ -26,6 +37,11 @@ class TelemetryStorageSequence : Sequence, IteratorProtocol {
         }
 
         while let url = directoryEnumerator.nextObject() as? URL {
+            if isStale(pingFile: url) {
+                remove(pingFile: url)
+                continue
+            }
+
             do {
                 let data = try Data(contentsOf: url)
                 if let dict = try JSONSerialization.jsonObject(with: data, options: []) as? [String : Any],
@@ -91,7 +107,7 @@ public class TelemetryStorage {
             return
         }
 
-        var url = directory.appendingPathComponent("\(Date().timeIntervalSince1970).json")
+        var url = directory.appendingPathComponent("-t-\(Date().timeIntervalSince1970).json")
 
         do {
             // TODO: Check `configuration.maximumNumberOfPingsPerType` and remove oldest ping if necessary.
@@ -115,11 +131,11 @@ public class TelemetryStorage {
     func sequence(forPingType pingType: String) -> TelemetryStorageSequence {
         guard let directory = directory(forPingType: pingType) else {
             print("TelemetryStorage.sequenceForPingType(): Could not get directory for pingType '\(pingType)'")
-            return TelemetryStorageSequence(directoryEnumerator: nil)
+            return TelemetryStorageSequence(directoryEnumerator: nil, configuration: configuration)
         }
         
         let directoryEnumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles, errorHandler: nil)
-        return TelemetryStorageSequence(directoryEnumerator: directoryEnumerator)
+        return TelemetryStorageSequence(directoryEnumerator: directoryEnumerator, configuration: configuration)
     }
 
     private func directory(forPingType pingType: String) -> URL? {
@@ -142,4 +158,21 @@ public class TelemetryStorage {
             print("\(#function) \(error)")
         }
     }
+
+    class func extractTimestampFromName(pingFile: URL) -> Date? {
+        let str = pingFile.absoluteString
+        let pat = "-t-([\\d.]+)\\.json"
+        let regex = try? NSRegularExpression(pattern: pat, options: [])
+        assert(regex != nil)
+        if let result = regex?.matches(in:str, range:NSMakeRange(0, str.characters.count)),
+            let match = result.first, match.range.length > 0 {
+            let time = (str as NSString).substring(with: match.rangeAt(1))
+            if let time = Double(time) {
+                return Date(timeIntervalSince1970: time)
+            }
+        }
+        return nil
+    }
+
+
 }

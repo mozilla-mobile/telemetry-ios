@@ -26,4 +26,8 @@ class TelemetryUtils {
         
         return String(string.characters.prefix(maxLength))
     }
+
+    static func daysBetween(start: Date, end: Date) -> Int {
+        return Calendar.current.dateComponents([.day], from: start, to: end).day ?? 0
+    }
 }

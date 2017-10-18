@@ -139,5 +139,13 @@ class TelemetryTests: XCTestCase {
         XCTWaiter().wait(for: [expectation(description: "process async events")], timeout: 1)
         XCTAssert(countFilesOnDisk() == 0, "Confirm no more upload files")
     }
+
+    func testFileTimestamp() {
+        let lastWeek = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+        let fileDate = TelemetryStorage.extractTimestampFromName(pingFile: URL(string: "a/b/c/foo-t-\(lastWeek.timeIntervalSince1970).json")!)!
+        XCTAssert(fileDate.timeIntervalSince1970 > 0)
+        XCTAssert(fabs(fileDate.timeIntervalSince1970 - lastWeek.timeIntervalSince1970) < 0.1 /* epsilon */)
+        XCTAssert(TelemetryUtils.daysBetween(start: fileDate, end: Date()) == 7)
+    }
 }
 

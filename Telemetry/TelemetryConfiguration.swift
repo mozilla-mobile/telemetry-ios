@@ -24,7 +24,7 @@ public class TelemetryConfiguration {
     public var maximumNumberOfEventsPerPing = TelemetryDefaults.MaxNumberOfEventsPerPing
     public var maximumNumberOfPingsPerType = TelemetryDefaults.MaxNumberOfPingsPerType
     public var maximumNumberOfPingUploadsPerDay = TelemetryDefaults.MaxNumberOfPingUploadsPerDay
-    public var maxNumberOfUploadAttemptsPerPing = TelemetryDefaults.MaxNumberOfUploadAttemptsPerPing
+    public var maximumAgeOfPingInDays = TelemetryDefaults.MaxAgeOfPingInDays
 
     public var isCollectionEnabled = true
     public var isUploadEnabled = true
