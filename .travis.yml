@@ -2,6 +2,3 @@ language: objective-c
 osx_image: xcode9
 xcode_project: Telemetry.xcodeproj 
 xcode_scheme: Telemetry
-before_install: 
- - brew update
- - brew install carthage
