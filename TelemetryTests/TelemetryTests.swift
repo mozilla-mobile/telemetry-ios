@@ -25,6 +25,8 @@ class TelemetryTests: XCTestCase {
             Telemetry.default.storage.clear(pingType: t)
             Telemetry.default.storage.set(key: "\(t)-lastUploadTimestamp", value: 0)
             Telemetry.default.storage.set(key: "\(t)-dailyUploadCount", value: 0)
+
+            Telemetry.default.storage.deleteEventArrayFile(forPingType: t)
         }
     }
 
@@ -108,16 +110,6 @@ class TelemetryTests: XCTestCase {
 
     func testAppEvents() {
         Telemetry.default.recordEvent(category: TelemetryEventCategory.action, method: TelemetryEventMethod.foreground, object: TelemetryEventObject.app)
-
-        // Ensure event is stored as expected
-        wait()
-        let saved = Telemetry.default.storage.get(valueFor: FocusEventPingBuilder.PingType + "-events") as! [[Any]]
-        let compared = [0, TelemetryEventCategory.action, TelemetryEventMethod.foreground, TelemetryEventObject.app] as [Any]
-        for i in 1..<4 {
-            XCTAssert("\(saved[0][i])" == "\(compared[i])")
-        }
-
-        // Add more events (TODO check timestamp increments)
         Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: "value", extras: ["extraKey": "extraValue"])
         Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: "value", extras: ["extraKey": nil])
         Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: nil, extras: ["extraKey": nil])
@@ -125,9 +117,6 @@ class TelemetryTests: XCTestCase {
         // Write events to a file
         Telemetry.default.queue(pingType: FocusEventPingBuilder.PingType)
         waitForFilesOnDisk(count: 1, pingType: FocusEventPingBuilder.PingType)
-
-        // Ensure events were flushed
-        XCTAssert((Telemetry.default.storage.get(valueFor: FocusEventPingBuilder.PingType + "-events") as! [Any]).count == 0)
 
         setupHttpResponseStub(expectedFilesUploaded: 1, statusCode: 200, eventCount: 4)
         upload(pingType: FocusEventPingBuilder.PingType)

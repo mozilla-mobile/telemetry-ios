@@ -78,8 +78,8 @@ class TelemetryStorageSequence : Sequence, IteratorProtocol {
 }
 
 public class TelemetryStorage {
-    private let name: String
-    private let configuration: TelemetryConfiguration
+    fileprivate let name: String
+    fileprivate let configuration: TelemetryConfiguration
 
     // Prepend to all key usage to avoid UserDefaults name collisions
     private let keyPrefix = "telemetry-key-prefix-"
@@ -170,6 +170,63 @@ public class TelemetryStorage {
         }
         return nil
     }
+}
 
+// Event array storage handling
+extension TelemetryStorage {
 
+    func eventArrayFile(forPingType pingType: String) -> URL? {
+        do {
+            let url = try FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent("eventArray-\(name)-\(pingType).json")
+            return url
+        } catch {
+            print("\(#function) \(error)")
+            return nil
+        }
+    }
+
+    func deleteEventArrayFile(forPingType pingType: String) {
+        guard let url = eventArrayFile(forPingType: pingType), FileManager.default.fileExists(atPath: url.path) else {
+            return
+        }
+
+        do {
+            try FileManager.default.removeItem(at: url)
+        } catch {
+            print("\(#function) \(error)")
+        }
+    }
+
+    // Appends JSON array, the file is a JSON snippet like "[event1],[event2]".
+    // To read this file: read to a string, wrap the string in '[ ]' to complete the JSON,
+    // then pass to JSON parser.
+    func appendEvent(data: Data, forPingType pingType: String) {
+        guard let file = eventArrayFile(forPingType: pingType) else {
+            return
+        }
+
+        do {
+            let separator = ",".data(using: .utf8)!
+            let isFirstRecord: Bool
+
+            // Create the file if not there.
+            if !FileManager.default.fileExists(atPath: file.path) {
+                isFirstRecord = true
+                try "".write(to: file, atomically: true, encoding: String.Encoding.utf8)
+            } else {
+                isFirstRecord = false
+            }
+
+            let fileHandle = try FileHandle(forWritingTo: file)
+            fileHandle.seekToEndOfFile()
+            if !isFirstRecord {
+                fileHandle.write(separator)
+            }
+            fileHandle.write(data)
+            fileHandle.closeFile()
+            print(file)
+        } catch {
+            print("\(#function) \(error)")
+        }
+    }
 }

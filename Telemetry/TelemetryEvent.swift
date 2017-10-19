@@ -13,8 +13,6 @@ public class TelemetryEvent {
     public static let MaxNumberOfExtras = 10
     public static let MaxLengthExtraKey = 15
     public static let MaxLengthExtraValue = 80
-    
-    public static let ExtrasDefaultValue = ""
 
     private static let AppLaunchTimestamp: Date = Date()
 
@@ -82,8 +80,9 @@ public class TelemetryEvent {
         }
 
         if !extras.isEmpty {
-            let value = self.value ?? TelemetryEvent.ExtrasDefaultValue
-            array.append(value)
+            if value == nil {
+                array.append(nil)
+            }
             array.append(extras)
         }
 

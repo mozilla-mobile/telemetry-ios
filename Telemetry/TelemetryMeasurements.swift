@@ -126,37 +126,47 @@ public class DistributionMeasurement: StaticTelemetryMeasurement {
 public class EventsMeasurement: TelemetryMeasurement {
     private let storage: TelemetryStorage
     private let pingType: String
-    
-    private var events: [[Any?]]
-    
+    private var eventsAddedToFile = 0
+
+    // Ensure at least this many events have been added before uploading.
     public var numberOfEvents: Int {
         get {
-            return events.count
+            return eventsAddedToFile
         }
     }
     
     init(storage: TelemetryStorage, pingType: String) {
         self.storage = storage
         self.pingType = pingType
-        
-        self.events = storage.get(valueFor: "\(pingType)-events") as? [[Any?]] ?? []
-        
         super.init(name: "events")
     }
     
     public func add(event: TelemetryEvent) {
-        events.append(event.toArray())
-
-        storage.set(key: "\(pingType)-events", value: events)
+        guard let data = event.toJSON() else {
+            return
+        }
+        eventsAddedToFile += 1
+        storage.appendEvent(data: data, forPingType: pingType)
     }
     
     override func flush() -> Any? {
-        let events = self.events
-        
-        self.events = []
-        storage.set(key: "\(pingType)-events", value: self.events)
-        
-        return events
+        guard let file = storage.eventArrayFile(forPingType: pingType) else {
+            return nil
+        }
+
+        defer {
+            eventsAddedToFile = 0
+            storage.deleteEventArrayFile(forPingType: pingType)
+        }
+
+        guard let jsonString = try? String(contentsOf: file, encoding: .utf8),
+            let data = "[\(jsonString)]".data(using: .utf8),
+            let jsonData = try? JSONSerialization.jsonObject(with: data, options: []) else {
+                print("Corrupted json file")
+                return nil
+        }
+
+        return jsonData
     }
 }
 
