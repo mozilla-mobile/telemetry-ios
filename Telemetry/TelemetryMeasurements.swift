@@ -126,12 +126,12 @@ public class DistributionMeasurement: StaticTelemetryMeasurement {
 public class EventsMeasurement: TelemetryMeasurement {
     private let storage: TelemetryStorage
     private let pingType: String
-    private var eventsAddedToFile = 0
+    private var eventsInFile = 0
 
     // Ensure at least this many events have been added before uploading.
     public var numberOfEvents: Int {
         get {
-            return eventsAddedToFile
+            return eventsInFile
         }
     }
     
@@ -139,14 +139,14 @@ public class EventsMeasurement: TelemetryMeasurement {
         self.storage = storage
         self.pingType = pingType
         super.init(name: "events")
+
+        eventsInFile = storage.countArrayFileEvents(forPingType: pingType)
     }
     
     public func add(event: TelemetryEvent) {
-        guard let data = event.toJSON() else {
-            return
+        if storage.append(event: event, forPingType: pingType) {
+            eventsInFile += 1
         }
-        eventsAddedToFile += 1
-        storage.appendEvent(data: data, forPingType: pingType)
     }
     
     override func flush() -> Any? {
@@ -155,7 +155,7 @@ public class EventsMeasurement: TelemetryMeasurement {
         }
 
         defer {
-            eventsAddedToFile = 0
+            eventsInFile = 0
             storage.deleteEventArrayFile(forPingType: pingType)
         }
 
