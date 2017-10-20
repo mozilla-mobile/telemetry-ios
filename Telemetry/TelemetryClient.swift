@@ -38,7 +38,7 @@ class TelemetryClient: NSObject {
         request.httpBody = data
         request.httpShouldHandleCookies = false
 
-        print("\(request.httpMethod ?? "(GET)") \(request.debugDescription)\nRequest Body: \(String(data: data, encoding: .utf8) ?? "(nil)")")
+        print("\(request.httpMethod ?? "(GET)") \(request.debugDescription)")
 
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             DispatchQueue.main.async {

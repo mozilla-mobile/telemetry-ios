@@ -112,6 +112,7 @@ public class TelemetryStorage {
             if let jsonString = String(data: jsonData, encoding: .utf8) {
                 try jsonString.write(to: url, atomically: true, encoding: .utf8)
 
+                print("Wrote file: \(url)")
                 // Exclude this file from iCloud backups.
                 var resourceValues = URLResourceValues()
                 resourceValues.isExcludedFromBackup = true

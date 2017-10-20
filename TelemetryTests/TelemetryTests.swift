@@ -9,25 +9,23 @@ import OHHTTPStubs
 
 class TelemetryTests: XCTestCase {
     var expectation: XCTestExpectation? = nil
-    var expectedFilesUploaded = 0
-    var countFilesUploaded = 0
 
     override func setUp() {
         super.setUp()
-
-        expectedFilesUploaded = 0
-        countFilesUploaded = 0
 
         let telemetryConfig = Telemetry.default.configuration
         telemetryConfig.appName = "AppInfo.displayName"
         telemetryConfig.userDefaultsSuiteName = "AppInfo.sharedContainerIdentifier"
         telemetryConfig.dataDirectory = .documentDirectory
 
-        Telemetry.default.storage.clear(pingType: CorePingBuilder.PingType)
-        Telemetry.default.storage.set(key: "\(CorePingBuilder.PingType)-lastUploadTimestamp", value: 0)
-
         Telemetry.default.add(pingBuilderType: CorePingBuilder.self)
+        Telemetry.default.add(pingBuilderType: FocusEventPingBuilder.self)
 
+        Telemetry.default.forEachPingType { t in
+            Telemetry.default.storage.clear(pingType: t)
+            Telemetry.default.storage.set(key: "\(t)-lastUploadTimestamp", value: 0)
+            Telemetry.default.storage.set(key: "\(t)-dailyUploadCount", value: 0)
+        }
     }
 
     override func tearDown() {
@@ -35,11 +33,12 @@ class TelemetryTests: XCTestCase {
         super.tearDown()
     }
 
-    private func setupHttpErrorStub(statusCode: URLError.Code = URLError.Code.badServerResponse) {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    private func setupHttpErrorStub(expectedFilesUploaded: Int, statusCode: URLError.Code = URLError.Code.badServerResponse) {
+        var countFilesUploaded = 0
+
         stub(condition: isHost("incoming.telemetry.mozilla.org")) { data in
-            self.countFilesUploaded += 1
-            if self.expectedFilesUploaded == self.countFilesUploaded {
+            countFilesUploaded += 1
+            if expectedFilesUploaded == countFilesUploaded {
                 DispatchQueue.main.async {
                     self.expectation?.fulfill()
                 }
@@ -50,16 +49,21 @@ class TelemetryTests: XCTestCase {
         }
     }
 
-    private func setupHttpResponseStub(statusCode: Int32 = 200) {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    private func setupHttpResponseStub(expectedFilesUploaded: Int, statusCode: Int32 = 200, eventCount: Int = 0) {
+        var countFilesUploaded = 0
+
         stub(condition: isHost("incoming.telemetry.mozilla.org")) { data in
             let body = (data as NSURLRequest).ohhttpStubs_HTTPBody()
             let str = String(data: body!, encoding: .utf8) ?? ""
-            print(" -- \n \(str)")
-            let _ = try! JSONSerialization.jsonObject(with: body!, options: []) as? [String: Any]
+            print("STUB RECEIVED: \(str) \n")
+            let json = try! JSONSerialization.jsonObject(with: body!, options: []) as? [String: Any]
+            XCTAssert(json != nil)
+            if eventCount > 0 {
+                XCTAssert((json!["events"] as! [[Any]]).count == eventCount)
+            }
 
-            self.countFilesUploaded += 1
-            if self.expectedFilesUploaded == self.countFilesUploaded {
+            countFilesUploaded += 1
+            if expectedFilesUploaded == countFilesUploaded {
                 DispatchQueue.main.async {
                     // let the response get processed before we mark the expectation fulfilled
                     self.expectation?.fulfill()
@@ -70,30 +74,63 @@ class TelemetryTests: XCTestCase {
         }
     }
 
-    private func storeOnDiskAndUpload(filesOnDisk: Int, expectedUploadCount: Int) {
-        expectedFilesUploaded = expectedUploadCount
+    private func upload(pingType: String) {
+        expectation = expectation(description: "Completed upload")
+        Telemetry.default.scheduleUpload(pingType: pingType)
+        waitForExpectations(timeout: 10.0) { error in
+            if error != nil {
+                print("Test timed out waiting for upload: \(error!)")
+            }
+        }
+    }
 
-        for _ in 0..<filesOnDisk {
+    private func storeOnDiskAndUpload(corePingFilesToWrite: Int) {
+        for _ in 0..<corePingFilesToWrite {
             Telemetry.default.recordSessionStart()
             Telemetry.default.recordSessionEnd()
             Telemetry.default.queue(pingType: CorePingBuilder.PingType)
         }
 
+        waitForFilesOnDisk(count: corePingFilesToWrite)
+        upload(pingType: CorePingBuilder.PingType)
+    }
+
+    private func waitForFilesOnDisk(count: Int, pingType: String = CorePingBuilder.PingType) {
+        wait()
+        XCTAssert(countFilesOnDisk(forPingType: pingType) == count, "waitForFilesOnDisk matching")
+    }
+
+    private func wait() {
         let wait = expectation(description: "process async events")
-        XCTWaiter().wait(for: [wait], timeout: 1)
-        print(countFilesOnDisk())
-        XCTAssert(countFilesOnDisk() == filesOnDisk, "Confirm upload file exists")
+        XCTWaiter().wait(for: [wait], timeout: 0.25)
+        wait.fulfill()
+    }
 
-        wait.fulfill() // required so it doesn't intefere with waitForExpectations
+    func testAppEvents() {
+        Telemetry.default.recordEvent(category: TelemetryEventCategory.action, method: TelemetryEventMethod.foreground, object: TelemetryEventObject.app)
 
-        expectation = expectation(description: "Completed upload")
-        Telemetry.default.scheduleUpload(pingType: CorePingBuilder.PingType)
-
-        waitForExpectations(timeout: 10.0) { error in
-            if error != nil {
-                print("Test timed out waiting for upload: %@", error!)
-            }
+        // Ensure event is stored as expected
+        wait()
+        let saved = Telemetry.default.storage.get(valueFor: FocusEventPingBuilder.PingType + "-events") as! [[Any]]
+        let compared = [0, TelemetryEventCategory.action, TelemetryEventMethod.foreground, TelemetryEventObject.app] as [Any]
+        for i in 1..<4 {
+            XCTAssert("\(saved[0][i])" == "\(compared[i])")
         }
+
+        // Add more events (TODO check timestamp increments)
+        Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: "value", extras: ["extraKey": "extraValue"])
+        Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: "value", extras: ["extraKey": nil])
+        Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: nil, extras: ["extraKey": nil])
+
+        // Write events to a file
+        Telemetry.default.queue(pingType: FocusEventPingBuilder.PingType)
+        waitForFilesOnDisk(count: 1, pingType: FocusEventPingBuilder.PingType)
+
+        // Ensure events were flushed
+        XCTAssert((Telemetry.default.storage.get(valueFor: FocusEventPingBuilder.PingType + "-events") as! [Any]).count == 0)
+
+        setupHttpResponseStub(expectedFilesUploaded: 1, statusCode: 200, eventCount: 4)
+        upload(pingType: FocusEventPingBuilder.PingType)
     }
 
     func testNoInternet() {
@@ -104,9 +141,9 @@ class TelemetryTests: XCTestCase {
         serverError(code: URLError.Code.badServerResponse)
     }
 
-    private func countFilesOnDisk() -> Int {
+    private func countFilesOnDisk(forPingType pingType: String = CorePingBuilder.PingType) -> Int {
         var result = 0
-        let seq = Telemetry.default.storage.sequence(forPingType: CorePingBuilder.PingType)
+        let seq = Telemetry.default.storage.sequence(forPingType: pingType)
         while seq.next() != nil {
             result += 1
         }
@@ -114,26 +151,23 @@ class TelemetryTests: XCTestCase {
     }
 
     private func serverError(code: URLError.Code) {
-        setupHttpErrorStub(statusCode: code)
+        setupHttpErrorStub(expectedFilesUploaded: 1, statusCode: code)
         let filesOnDisk = 3
         // Only one attempted upload, but all 3 files should remain on disk.
-        storeOnDiskAndUpload(filesOnDisk: filesOnDisk, expectedUploadCount: 1)
-        XCTWaiter().wait(for: [expectation(description: "process async events")], timeout: 1)
-        XCTAssert(countFilesOnDisk() == filesOnDisk, "Confirm upload file exists")
+        storeOnDiskAndUpload(corePingFilesToWrite: filesOnDisk)
+        waitForFilesOnDisk(count: filesOnDisk)
     }
 
     func test4xxCode() {
-        setupHttpResponseStub(statusCode: 400)
-        storeOnDiskAndUpload(filesOnDisk: 3, expectedUploadCount: 3)
-        XCTWaiter().wait(for: [expectation(description: "process async events")], timeout: 1)
-        XCTAssert(countFilesOnDisk() == 0, "Confirm no more upload files")
+        setupHttpResponseStub(expectedFilesUploaded: 3, statusCode: 400)
+        storeOnDiskAndUpload(corePingFilesToWrite: 3)
+        waitForFilesOnDisk(count: 0)
     }
 
     func testTelemetryUpload() {
-        setupHttpResponseStub()
-        storeOnDiskAndUpload(filesOnDisk: 3, expectedUploadCount: 3)
-        XCTWaiter().wait(for: [expectation(description: "process async events")], timeout: 1)
-        XCTAssert(countFilesOnDisk() == 0, "Confirm no more upload files")
+        setupHttpResponseStub(expectedFilesUploaded: 3, statusCode: 200)
+        storeOnDiskAndUpload(corePingFilesToWrite: 3)
+        waitForFilesOnDisk(count: 0)
     }
 
     func testFileTimestamp() {
