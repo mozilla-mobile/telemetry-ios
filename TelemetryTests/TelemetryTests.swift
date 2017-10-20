@@ -114,9 +114,16 @@ class TelemetryTests: XCTestCase {
         Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: "value", extras: ["extraKey": nil])
         Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: nil, extras: ["extraKey": nil])
 
+        wait()
+        var count = Telemetry.default.storage.countArrayFileEvents(forPingType: FocusEventPingBuilder.PingType)
+        XCTAssert(count == 4)
+
         // Write events to a file
         Telemetry.default.queue(pingType: FocusEventPingBuilder.PingType)
         waitForFilesOnDisk(count: 1, pingType: FocusEventPingBuilder.PingType)
+
+        count = Telemetry.default.storage.countArrayFileEvents(forPingType: FocusEventPingBuilder.PingType)
+        XCTAssert(count == 0)
 
         setupHttpResponseStub(expectedFilesUploaded: 1, statusCode: 200, eventCount: 4)
         upload(pingType: FocusEventPingBuilder.PingType)

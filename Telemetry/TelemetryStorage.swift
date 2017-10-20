@@ -172,8 +172,18 @@ public class TelemetryStorage {
     }
 }
 
+fileprivate let eventSeparator = ",\n".data(using: .utf8)!
+
 // Event array storage handling
 extension TelemetryStorage {
+    func countArrayFileEvents(forPingType pingType: String) -> Int {
+        guard let file = eventArrayFile(forPingType: pingType),
+            let text = try? String(contentsOf: file, encoding: .utf8) else {
+            return 0
+        }
+        // A single newline would indicate 2 records
+        return text.characters.filter { $0 == "\n" }.count + 1
+    }
 
     func eventArrayFile(forPingType pingType: String) -> URL? {
         do {
@@ -200,13 +210,12 @@ extension TelemetryStorage {
     // Appends JSON array, the file is a JSON snippet like "[event1],[event2]".
     // To read this file: read to a string, wrap the string in '[ ]' to complete the JSON,
     // then pass to JSON parser.
-    func appendEvent(data: Data, forPingType pingType: String) {
-        guard let file = eventArrayFile(forPingType: pingType) else {
-            return
+    func append(event: TelemetryEvent, forPingType pingType: String) -> Bool {
+        guard let data = event.toJSON(), let file = eventArrayFile(forPingType: pingType) else {
+            return false
         }
 
         do {
-            let separator = ",".data(using: .utf8)!
             let isFirstRecord: Bool
 
             // Create the file if not there.
@@ -220,13 +229,14 @@ extension TelemetryStorage {
             let fileHandle = try FileHandle(forWritingTo: file)
             fileHandle.seekToEndOfFile()
             if !isFirstRecord {
-                fileHandle.write(separator)
+                fileHandle.write(eventSeparator)
             }
             fileHandle.write(data)
             fileHandle.closeFile()
-            print(file)
+            return true
         } catch {
             print("\(#function) \(error)")
+            return false
         }
     }
 }
