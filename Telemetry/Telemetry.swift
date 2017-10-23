@@ -35,6 +35,11 @@ public class Telemetry {
         let pingBuilder = pingBuilderType.init(configuration: configuration, storage: storage)
         pingBuilders[pingBuilderType.PingType] = pingBuilder
         backgroundTasks[pingBuilderType.PingType] = UIBackgroundTaskInvalid
+
+        // Assign a default event ping builder if not set
+        if configuration.defaultEventPingBuilderType == nil, pingBuilder is TelemetryEventPingBuilder {
+            configuration.defaultEventPingBuilderType = pingBuilderType.PingType
+        }
     }
 
     func hasPingType(_ pingType: String) -> Bool {
@@ -121,13 +126,14 @@ public class Telemetry {
         pingBuilder.endSession()
     }
 
-    public func recordEvent(_ event: TelemetryEvent) {
+    // Leave pingType nil to use the configuration.defaultEventPingBuilderType
+    public func recordEvent(_ event: TelemetryEvent, pingType: String? = nil) {
         if !self.configuration.isCollectionEnabled {
             return
         }
 
-        guard let pingBuilder: FocusEventPingBuilder = self.pingBuilders[FocusEventPingBuilder.PingType] as? FocusEventPingBuilder else {
-            print("This configuration does not contain a TelemetryPingBuilder for \(FocusEventPingBuilder.PingType)")
+        guard let type = pingType ?? configuration.defaultEventPingBuilderType, let pingBuilder = self.pingBuilders[type] as? TelemetryEventPingBuilder else {
+            print("This configuration does not contain a TelemetryEventPingBuilder for \(pingType ?? "nil")")
             return
         }
 
@@ -140,16 +146,16 @@ public class Telemetry {
         }
     }
 
-    public func recordEvent(category: String, method: String, object: String) {
-        recordEvent(TelemetryEvent(category: category, method: method, object: object))
+    public func recordEvent(category: String, method: String, object: String, pingType: String? = nil) {
+        recordEvent(TelemetryEvent(category: category, method: method, object: object), pingType: pingType)
     }
 
-    public func recordEvent(category: String, method: String, object: String, value: String?) {
-        recordEvent(TelemetryEvent(category: category, method: method, object: object, value: value))
+    public func recordEvent(category: String, method: String, object: String, value: String?, pingType: String? = nil) {
+        recordEvent(TelemetryEvent(category: category, method: method, object: object, value: value), pingType: pingType)
     }
 
-    public func recordEvent(category: String, method: String, object: String, value: String?, extras: [String : Any?]?) {
-        recordEvent(TelemetryEvent(category: category, method: method, object: object, value: value, extras: extras))
+    public func recordEvent(category: String, method: String, object: String, value: String?, extras: [String : Any?]?, pingType: String? = nil) {
+        recordEvent(TelemetryEvent(category: category, method: method, object: object, value: value, extras: extras), pingType: pingType)
     }
 
     public func recordSearch(location: SearchesMeasurement.SearchLocation, searchEngine: String) {
