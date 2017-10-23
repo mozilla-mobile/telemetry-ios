@@ -9,6 +9,17 @@ import Foundation
     func print(_ items: Any..., separator: String = " ", terminator: String = "\n") {}
 #endif
 
+extension UInt64 {
+    static func safeConvert<T: FloatingPoint>(_ val: T) -> UInt64 {
+        let d = val as? Double ?? 0.0
+        return UInt64(Swift.max(0.0, d))
+    }
+
+    static func safeConvert<T: Integer>(_ val: T) -> UInt64 {
+        return UInt64(Swift.max(0, val))
+    }
+}
+
 class TelemetryUtils {
     static func asString(_ object: Any?) -> String {
         if let string = object as? String {
