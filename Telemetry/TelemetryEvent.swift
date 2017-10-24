@@ -25,7 +25,7 @@ public class TelemetryEvent {
     private var extras: [String : String]
 
     public convenience init(category: String, method: String, object: String, value: String? = nil, extras: [String : Any?]? = nil) {
-        let timestamp = UInt64(max(0, Date().timeIntervalSince(TelemetryEvent.AppLaunchTimestamp) * 1000))
+        let timestamp = UInt64.safeConvert(Date().timeIntervalSince(TelemetryEvent.AppLaunchTimestamp) * 1000)
         self.init(category: category, method: method, object: object, value: value, timestamp: timestamp)
 
         if let extras = extras {

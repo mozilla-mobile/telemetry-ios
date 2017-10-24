@@ -86,7 +86,7 @@ public class CreatedDateMeasurement: StaticTelemetryMeasurement {
 
 public class CreatedTimestampMeasurement: StaticTelemetryMeasurement {
     init() {
-        super.init(name: "created", value: UInt64(Date().timeIntervalSince1970 * 1000))
+        super.init(name: "created", value: UInt64.safeConvert(Date().timeIntervalSince1970 * 1000))
     }
 }
 
@@ -220,16 +220,16 @@ public class ProfileDateMeasurement: TelemetryMeasurement {
         if let url = try? FileManager.default.url(for: configuration.dataDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent(configuration.profileFilename) {
             if let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
                let creationDate = attributes[FileAttributeKey.creationDate] as? Date {
-                let seconds = UInt64(creationDate.timeIntervalSince1970)
-                let days = UInt64(seconds * oneSecondInMilliseconds / oneDayInMilliseconds)
+                let seconds = UInt64.safeConvert(creationDate.timeIntervalSince1970)
+                let days = seconds * oneSecondInMilliseconds / oneDayInMilliseconds
                 
                 return days
             }
         }
 
         // Fallback to current date if profile cannot be found
-        let seconds = UInt64(Date().timeIntervalSince1970)
-        let days = UInt64(seconds * oneSecondInMilliseconds / oneDayInMilliseconds)
+        let seconds = UInt64.safeConvert(Date().timeIntervalSince1970)
+        let days = seconds * oneSecondInMilliseconds / oneDayInMilliseconds
         
         return days
     }
@@ -355,18 +355,18 @@ public class SessionDurationMeasurement: TelemetryMeasurement {
     }
     
     public func end() throws {
-        if startTime == nil {
+        guard let startTime = self.startTime else {
             throw NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.SessionNotStarted, userInfo: [NSLocalizedDescriptionKey: "Session has not started"])
         }
         
         var totalDurations = storage.get(valueFor: "durations") as? UInt64 ?? 0
         
-        let duration = UInt64(Date().timeIntervalSince(startTime!))
+        let duration = UInt64.safeConvert(Date().timeIntervalSince(startTime))
         totalDurations += duration
         
         storage.set(key: "durations", value: totalDurations)
 
-        startTime = nil
+        self.startTime = nil
     }
 }
 
