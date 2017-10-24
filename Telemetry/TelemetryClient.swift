@@ -15,19 +15,15 @@ class TelemetryClient: NSObject {
     func upload(ping: TelemetryPing, completionHandler: @escaping (Int, Error?) -> Void) -> Void {
         guard let url = URL(string: "\(configuration.serverEndpoint)\(ping.uploadPath)") else {
             let error = NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.InvalidUploadURL, userInfo: [NSLocalizedDescriptionKey: "Invalid upload URL: \(configuration.serverEndpoint)\(ping.uploadPath)"])
-            
-            print(error.localizedDescription)
             completionHandler(0, error)
-            NotificationCenter.default.post(name: Telemetry.notificationUploadError, object: nil, userInfo: ["error": error])
+            report(error: error)
             return
         }
         
         guard let data = ping.measurementsJSON() else {
             let error = NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.CannotGenerateJSON, userInfo: [NSLocalizedDescriptionKey: "Error generating JSON data for TelemetryPing"])
-
-            print(error.localizedDescription)
             completionHandler(0, error)
-            NotificationCenter.default.post(name: Telemetry.notificationUploadError, object: nil, userInfo: ["error": error])
+            report(error: error)
             return
         }
 
@@ -51,7 +47,7 @@ class TelemetryClient: NSObject {
 
                 let err = error ?? NSError(domain: TelemetryError.ErrorDomain, code: TelemetryError.UnknownUploadError, userInfo: nil)
                 completionHandler(statusCode, err)
-                NotificationCenter.default.post(name: Telemetry.notificationUploadError, object: nil, userInfo: ["error": err])
+                report(error: err)
             }
         }
         task.resume()

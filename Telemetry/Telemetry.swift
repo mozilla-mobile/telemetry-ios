@@ -20,7 +20,7 @@ public class Telemetry {
     private var backgroundTasks = [String : UIBackgroundTaskIdentifier]()
 
     // Use this to monitor upload errors from outside of this library
-    public static let notificationUploadError = Notification.Name("NotificationTelemetryUploadError")
+    public static let notificationReportError = Notification.Name("NotificationTelemetryErrorReport")
 
     public static let `default`: Telemetry = {
         return Telemetry(storageName: "MozTelemetry-Default")

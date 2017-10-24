@@ -9,6 +9,18 @@ import Foundation
     func print(_ items: Any..., separator: String = " ", terminator: String = "\n") {}
 #endif
 
+// Will print the error, and if it is not a simple network connection problem, report it to the client app.
+func report(error: Error) {
+    print(error)
+
+    let code = (error as NSError).code
+    let errorsNotReported = [NSURLErrorNotConnectedToInternet, NSURLErrorCancelled, NSURLErrorTimedOut, NSURLErrorInternationalRoamingOff, NSURLErrorDataNotAllowed, NSURLErrorCannotFindHost, NSURLErrorCannotConnectToHost, NSURLErrorNetworkConnectionLost]
+    if errorsNotReported.contains(code) {
+        return
+    }
+    NotificationCenter.default.post(name: Telemetry.notificationReportError, object: nil, userInfo: ["error": error])
+}
+
 extension UInt64 {
     static func safeConvert<T: FloatingPoint>(_ val: T) -> UInt64 {
         let d = val as? Double ?? 0.0
