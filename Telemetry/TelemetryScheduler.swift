@@ -30,8 +30,8 @@ class TelemetryScheduler {
                 let errorCode = (error as NSError?)?.code ?? 0
                 let errorRequiresDelete = [TelemetryError.InvalidUploadURL, TelemetryError.CannotGenerateJSON].contains(errorCode)
 
-                // Arguably, this could be (200..<500).contains(httpStatusCode) and 5xx errors could be handled more selectively to decide whether to delete the ping.
-                if (200..<500).contains(httpStatusCode) || errorRequiresDelete {
+                // Delete the ping on any 2xx or 4xx status code.
+                if [2,4].contains(Int(httpStatusCode / 100)) || errorRequiresDelete {
                     // Network call completed, successful or with error, delete the ping, and upload the next ping.
                     pingSequence.remove()
                     self.incrementDailyUploadCount(forPingType: pingType)
