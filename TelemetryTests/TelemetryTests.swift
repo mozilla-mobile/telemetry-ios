@@ -87,6 +87,8 @@ class TelemetryTests: XCTestCase {
     }
 
     private func storeOnDiskAndUpload(corePingFilesToWrite: Int) {
+        let startSeq = Telemetry.default.storage.get(valueFor: "\(CorePingBuilder.PingType)-seq") as? Int ?? 0
+
         for _ in 0..<corePingFilesToWrite {
             Telemetry.default.recordSessionStart()
             Telemetry.default.recordSessionEnd()
@@ -95,6 +97,9 @@ class TelemetryTests: XCTestCase {
 
         waitForFilesOnDisk(count: corePingFilesToWrite)
         upload(pingType: CorePingBuilder.PingType)
+
+        let endSeq = Telemetry.default.storage.get(valueFor: "\(CorePingBuilder.PingType)-seq") as! Int
+        XCTAssert(endSeq - startSeq == corePingFilesToWrite)
     }
 
     private func waitForFilesOnDisk(count: Int, pingType: String = CorePingBuilder.PingType) {
@@ -153,6 +158,7 @@ class TelemetryTests: XCTestCase {
         storeOnDiskAndUpload(corePingFilesToWrite: filesOnDisk)
         waitForFilesOnDisk(count: filesOnDisk)
     }
+
 
     func test4xxCode() {
         setupHttpResponseStub(expectedFilesUploaded: 3, statusCode: 400)
