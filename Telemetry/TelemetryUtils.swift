@@ -15,7 +15,12 @@ func report(error: Error) {
 
     let code = (error as NSError).code
     let errorsNotReported = [NSURLErrorNotConnectedToInternet, NSURLErrorCancelled, NSURLErrorTimedOut, NSURLErrorInternationalRoamingOff, NSURLErrorDataNotAllowed, NSURLErrorCannotFindHost, NSURLErrorCannotConnectToHost, NSURLErrorNetworkConnectionLost]
-    if errorsNotReported.contains(code) {
+
+    let desc = (error as NSError).debugDescription.lowercased()
+    // These errors arrive as generic NSError with no code
+    let hasIgnoredDescription = ["offline", "ssl error"].reduce(false) { result, x in desc.contains(x) }
+
+    if errorsNotReported.contains(code) || hasIgnoredDescription {
         return
     }
     NotificationCenter.default.post(name: Telemetry.notificationReportError, object: nil, userInfo: ["error": error])
