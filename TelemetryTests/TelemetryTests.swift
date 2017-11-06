@@ -87,7 +87,7 @@ class TelemetryTests: XCTestCase {
     }
 
     private func storeOnDiskAndUpload(corePingFilesToWrite: Int) {
-        let startSeq = Telemetry.default.storage.get(valueFor: "\(CorePingBuilder.PingType)-seq") as! Int
+        let startSeq = Telemetry.default.storage.get(valueFor: "\(CorePingBuilder.PingType)-seq") as? Int ?? 0
 
         for _ in 0..<corePingFilesToWrite {
             Telemetry.default.recordSessionStart()
