@@ -114,14 +114,13 @@ class TelemetryTests: XCTestCase {
     }
 
     func testAppEvents() {
-        Telemetry.default.recordEvent(category: TelemetryEventCategory.action, method: TelemetryEventMethod.foreground, object: TelemetryEventObject.app)
         Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: "value", extras: ["extraKey": "extraValue"])
         Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: "value", extras: ["extraKey": nil])
         Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: nil, extras: ["extraKey": nil])
 
         wait()
         var count = Telemetry.default.storage.countArrayFileEvents(forPingType: FocusEventPingBuilder.PingType)
-        XCTAssert(count == 4)
+        XCTAssert(count == 3)
 
         // Write events to a file
         Telemetry.default.queue(pingType: FocusEventPingBuilder.PingType)
@@ -130,7 +129,7 @@ class TelemetryTests: XCTestCase {
         count = Telemetry.default.storage.countArrayFileEvents(forPingType: FocusEventPingBuilder.PingType)
         XCTAssert(count == 0)
 
-        setupHttpResponseStub(expectedFilesUploaded: 1, statusCode: 200, eventCount: 4)
+        setupHttpResponseStub(expectedFilesUploaded: 1, statusCode: 200, eventCount: 3)
         upload(pingType: FocusEventPingBuilder.PingType)
     }
 
