@@ -2,19 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-class TelemetryEventCategory {
-    public static let action = "action"
-}
-
-class TelemetryEventMethod {
-    public static let background = "background"
-    public static let foreground = "foreground"
-}
-
-class TelemetryEventObject {
-    public static let app = "app"
-}
-
 class AppEvents {
     init() {
         NotificationCenter.default.addObserver(self, selector: #selector(AppEvents.appWillResignActive(notification:)), name: NSNotification.Name.UIApplicationWillResignActive, object: nil)
