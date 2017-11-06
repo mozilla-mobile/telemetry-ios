@@ -141,7 +141,7 @@ public class Telemetry {
             pingBuilder.add(event: event)
 
             if pingBuilder.numberOfEvents >= self.configuration.maximumNumberOfEventsPerPing {
-                self.queue(pingType: FocusEventPingBuilder.PingType)
+                self.queue(pingType: type)
             }
         }
     }
