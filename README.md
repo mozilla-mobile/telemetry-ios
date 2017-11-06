@@ -38,24 +38,18 @@ Telemetry.default.add(pingBuilderType: FocusEventPingBuilder.self)
 
 How you record data in your application depends largely on the ping builder types you are using. For convenience, several methods are accessible right off the root `Telemetry` class for interfacing with the built-in ping builder types.
 
-* `recordSessionStart()` -- Marks the start of a "session" for `CorePingBuilder`. This is typically called from `applicationDidBecomeActive(_ application: UIApplication)` in the `AppDelegate`.
-* `recordSessionEnd()` -- Marks the end of a "session" for `CorePingBuilder`. This is typically called from `applicationWillResignActive(_ application: UIApplication)` in the `AppDelegate`.
+* Ensure your ping builders are registered before the UIApplication `appDidBecomeActive`, as the library uses that event to trigger the start of recording.
 * `recordEvent(_ event: TelemetryEvent)` -- Adds a UI event to be batched and sent for `FocusEventPingBuilder`. There are also several convenience methods for constructing a `TelemetryEvent` and recording it at the same time such as `recordEvent(category: String, method: String, object: String, value: String?, extras: [String : Any?]?)` where `value` and `extras` are both optional.
 * `recordSearch(location: SearchesMeasurement.SearchLocation, searchEngine: String)` -- Records that a search was performed for `CorePingBuilder`.
 
-After recording data, it is stored locally in `FileManager.SearchPathDirectory.cachesDirectory` by default. Before sending a ping, it needs to be queued to capture all of the measurements and store the finalized ping to the filesystem. This is typically done in `applicationDidEnterBackground(_ application: UIApplication)` in the `AppDelegate`:
+After recording data, it is stored locally in `FileManager.SearchPathDirectory.cachesDirectory` by default. 
 
-```swift
-Telemetry.default.queue(pingType: CorePingBuilder.PingType)
-```
+When the app is backgrounded, one or more backgroundTasks are started to perform uploading.
 
-Finally, the stored pings for a specified ping type need to be scheduled for uploading. This is also typically done in `applicationDidEnterBackground(_ application: UIApplication)` in the `AppDelegate`:
+### Customizing Ping Data
 
-```swift
-Telemetry.default.scheduleUpload(pingType: CorePingBuilder.PingType)
-```
-
-All stored pings for the scheduled ping types will be uploaded with a `URLSessionConfiguration` configured for background uploading. This means iOS will automatically schedule the HTTP task to happen in the background at an appropriate time at its discretion. In practice, this HTTP request usually happens almost immediately after the application enters the background.
+To modify the final key-value data dict before it gets stored as JSON, install a handler using Telemetry.swift:
+`beforeSerializePing(pingType: String, handler: @escaping BeforeSerializePingHandler)`
 
 ## Getting involved
 
