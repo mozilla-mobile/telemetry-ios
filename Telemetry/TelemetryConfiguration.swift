@@ -27,7 +27,11 @@ public class TelemetryConfiguration {
 
     public var userDefaultsSuiteName: String?
     private(set) public var measuredUserDefaults: [[String : Any?]]
-    
+
+    // This is used for adding multiple TelemetryEventPingBuilder classes.
+    // Use this to specify the default one for Telemetry.recordEvent(), or ensure to specify the pingType in all recordEvent() calls.
+    public var defaultEventPingBuilderType: String?
+
     public init() {
         let info = Bundle.main.infoDictionary
 

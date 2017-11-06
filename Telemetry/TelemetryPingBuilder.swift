@@ -133,7 +133,37 @@ public class CorePingBuilder: TelemetryPingBuilder {
     }
 }
 
-public class FocusEventPingBuilder: TelemetryPingBuilder {
+public class TelemetryEventPingBuilder: TelemetryPingBuilder {
+    private let eventsMeasurement: EventsMeasurement
+
+    var numberOfEvents: Int {
+        get {
+            return eventsMeasurement.numberOfEvents
+        }
+    }
+
+    override var canBuild: Bool {
+        get {
+            return eventsMeasurement.numberOfEvents >= configuration.minimumEventsForUpload
+        }
+    }
+
+    required public init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
+        eventsMeasurement = EventsMeasurement(storage: storage, pingType: type(of: self).PingType)
+        super.init(configuration: configuration, storage: storage)
+        add(measurement: self.eventsMeasurement)
+    }
+
+    override func getUploadPath(withDocumentId documentId: String) -> String {
+        return super.getUploadPath(withDocumentId: documentId) + "?v=4"
+    }
+
+    public func add(event: TelemetryEvent) {
+        self.eventsMeasurement.add(event: event)
+    }
+}
+
+public class FocusEventPingBuilder: TelemetryEventPingBuilder {
     override public class var PingType: String {
         return "focus-event"
     }
@@ -141,24 +171,8 @@ public class FocusEventPingBuilder: TelemetryPingBuilder {
     override public class var Version: Int {
         return 1
     }
-    
-    private let eventsMeasurement: EventsMeasurement
-    
-    var numberOfEvents: Int {
-        get {
-            return eventsMeasurement.numberOfEvents
-        }
-    }
-    
-    override var canBuild: Bool {
-        get {
-            return eventsMeasurement.numberOfEvents >= configuration.minimumEventsForUpload
-        }
-    }
-    
+
     required public init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
-        self.eventsMeasurement = EventsMeasurement(storage: storage, pingType: type(of: self).PingType)
-        
         super.init(configuration: configuration, storage: storage)
 
         self.add(measurement: ClientIdMeasurement(storage: storage))
@@ -170,15 +184,5 @@ public class FocusEventPingBuilder: TelemetryPingBuilder {
         self.add(measurement: TimezoneOffsetMeasurement())
         self.add(measurement: UserDefaultsMeasurement(configuration: configuration))
         self.add(measurement: VersionMeasurement(version: type(of: self).Version))
-        
-        self.add(measurement: self.eventsMeasurement)
-    }
-    
-    override func getUploadPath(withDocumentId documentId: String) -> String {
-        return super.getUploadPath(withDocumentId: documentId) + "?v=4"
-    }
-    
-    public func add(event: TelemetryEvent) {
-        self.eventsMeasurement.add(event: event)
     }
 }
