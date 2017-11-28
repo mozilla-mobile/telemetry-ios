@@ -163,9 +163,9 @@ public class TelemetryEventPingBuilder: TelemetryPingBuilder {
     }
 }
 
-public class FocusEventPingBuilder: TelemetryEventPingBuilder {
+public class MobileEventPingBuilder: TelemetryEventPingBuilder {
     override public class var PingType: String {
-        return "focus-event"
+        return "mobile-event"
     }
     
     override public class var Version: Int {
@@ -180,9 +180,25 @@ public class FocusEventPingBuilder: TelemetryEventPingBuilder {
         self.add(measurement: LocaleMeasurement())
         self.add(measurement: OperatingSystemMeasurement())
         self.add(measurement: OperatingSystemVersionMeasurement())
+        self.add(measurement: DeviceMeasurement())
+        self.add(measurement: ArchitectureMeasurement())
         self.add(measurement: CreatedTimestampMeasurement())
         self.add(measurement: TimezoneOffsetMeasurement())
         self.add(measurement: UserDefaultsMeasurement(configuration: configuration))
         self.add(measurement: VersionMeasurement(version: type(of: self).Version))
+    }
+}
+
+public class FocusEventPingBuilder: MobileEventPingBuilder {
+    override public class var PingType: String {
+        return "focus-event"
+    }
+
+    override public class var Version: Int {
+        return 1
+    }
+
+    required public init(configuration: TelemetryConfiguration, storage: TelemetryStorage) {
+        super.init(configuration: configuration, storage: storage)
     }
 }
