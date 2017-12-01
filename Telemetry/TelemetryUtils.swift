@@ -14,11 +14,11 @@ func report(error: Error) {
     print(error)
 
     let code = (error as NSError).code
-    let errorsNotReported = [NSURLErrorNotConnectedToInternet, NSURLErrorCancelled, NSURLErrorTimedOut, NSURLErrorInternationalRoamingOff, NSURLErrorDataNotAllowed, NSURLErrorCannotFindHost, NSURLErrorCannotConnectToHost, NSURLErrorNetworkConnectionLost]
+    let errorsNotReported = [NSURLErrorNotConnectedToInternet, NSURLErrorCancelled, NSURLErrorTimedOut, NSURLErrorInternationalRoamingOff, NSURLErrorDataNotAllowed, NSURLErrorCannotFindHost, NSURLErrorCannotConnectToHost, NSURLErrorNetworkConnectionLost, NSURLErrorSecureConnectionFailed, NSURLErrorServerCertificateHasBadDate, NSURLErrorServerCertificateUntrusted, NSURLErrorServerCertificateHasUnknownRoot, NSURLErrorServerCertificateNotYetValid, NSURLErrorClientCertificateRejected, NSURLErrorClientCertificateRequired]
 
     let desc = (error as NSError).debugDescription.lowercased()
     // These errors arrive as generic NSError with no code
-    let hasIgnoredDescription = ["offline", "ssl error"].reduce(false) { result, x in desc.contains(x) }
+    let hasIgnoredDescription = desc.contains("offline")
 
     if errorsNotReported.contains(code) || hasIgnoredDescription {
         return
