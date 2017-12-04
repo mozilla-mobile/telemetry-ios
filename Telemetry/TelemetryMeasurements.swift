@@ -84,9 +84,13 @@ public class CreatedDateMeasurement: StaticTelemetryMeasurement {
     }
 }
 
-public class CreatedTimestampMeasurement: StaticTelemetryMeasurement {
+public class CreatedTimestampMeasurement: TelemetryMeasurement {
     init() {
-        super.init(name: "created", value: UInt64.safeConvert(Date().timeIntervalSince1970 * 1000))
+        super.init(name: "created")
+    }
+
+    override func flush() -> Any? {
+        return UInt64.safeConvert(Date().timeIntervalSince1970 * 1000)
     }
 }
 
@@ -199,6 +203,12 @@ public class OperatingSystemMeasurement: StaticTelemetryMeasurement {
 public class OperatingSystemVersionMeasurement: StaticTelemetryMeasurement {
     init() {
         super.init(name: "osversion", value: UIDevice.current.systemVersion)
+    }
+}
+
+public class ProcessStartTimestampMeasurement: StaticTelemetryMeasurement {
+    init() {
+        super.init(name: "processStartTimestamp", value: UInt64.safeConvert(Telemetry.appLaunchTimestamp.timeIntervalSince1970 * 1000))
     }
 }
 

@@ -183,6 +183,7 @@ public class MobileEventPingBuilder: TelemetryEventPingBuilder {
         self.add(measurement: DeviceMeasurement())
         self.add(measurement: ArchitectureMeasurement())
         self.add(measurement: CreatedTimestampMeasurement())
+        self.add(measurement: ProcessStartTimestampMeasurement())
         self.add(measurement: TimezoneOffsetMeasurement())
         self.add(measurement: UserDefaultsMeasurement(configuration: configuration))
         self.add(measurement: VersionMeasurement(version: type(of: self).Version))
