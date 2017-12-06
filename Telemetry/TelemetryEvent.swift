@@ -14,8 +14,6 @@ public class TelemetryEvent {
     public static let MaxLengthExtraKey = 15
     public static let MaxLengthExtraValue = 80
 
-    private static let AppLaunchTimestamp: Date = Date()
-
     public let category: String
     public let method: String
     public let object: String
@@ -25,7 +23,7 @@ public class TelemetryEvent {
     private var extras: [String : String]
 
     public convenience init(category: String, method: String, object: String, value: String? = nil, extras: [String : Any?]? = nil) {
-        let timestamp = UInt64.safeConvert(Date().timeIntervalSince(TelemetryEvent.AppLaunchTimestamp) * 1000)
+        let timestamp = UInt64.safeConvert(Date().timeIntervalSince(Telemetry.appLaunchTimestamp) * 1000)
         self.init(category: category, method: method, object: object, value: value, timestamp: timestamp)
 
         if let extras = extras {

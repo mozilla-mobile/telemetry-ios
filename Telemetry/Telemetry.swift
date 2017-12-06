@@ -19,6 +19,8 @@ public class Telemetry {
     private var pingBuilders = [String : TelemetryPingBuilder]()
     private var backgroundTasks = [String : UIBackgroundTaskIdentifier]()
 
+    public static let appLaunchTimestamp: Date = Date()
+
     // Use this to monitor upload errors from outside of this library
     public static let notificationReportError = Notification.Name("NotificationTelemetryErrorReport")
 
