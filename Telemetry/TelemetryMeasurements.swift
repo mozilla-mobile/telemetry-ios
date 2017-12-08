@@ -76,11 +76,16 @@ public class ClientIdMeasurement: TelemetryMeasurement {
     }
 }
 
-public class CreatedDateMeasurement: StaticTelemetryMeasurement {
+public class CreatedDateMeasurement: TelemetryMeasurement {
     init() {
+        super.init(name: "created")
+    }
+
+    override func flush() -> Any? {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
-        super.init(name: "created", value: dateFormatter.string(from: Date()))
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        return dateFormatter.string(from: Date())
     }
 }
 
