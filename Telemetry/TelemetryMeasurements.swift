@@ -85,6 +85,7 @@ public class CreatedDateMeasurement: TelemetryMeasurement {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
         return dateFormatter.string(from: Date())
     }
 }
