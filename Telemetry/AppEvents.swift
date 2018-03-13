@@ -17,16 +17,29 @@ class AppEvents {
         }
     }
 
+    private func upload() {
+        Telemetry.default.forEachPingType { pingType in
+            Telemetry.default.scheduleUpload(pingType: pingType)
+        }
+    }
+
     @objc func appDidEnterBackground(notification: NSNotification) {
         Telemetry.default.forEachPingType { pingType in
             Telemetry.default.queue(pingType: pingType)
-            Telemetry.default.scheduleUpload(pingType: pingType)
+        }
+
+        if [ScheduleUpload.backgrounded, ScheduleUpload.both].contains(Telemetry.default.configuration.scheduleUpload) {
+            upload()
         }
     }
 
     @objc func appDidBecomeActive(notification: NSNotification) {
         if Telemetry.default.hasPingType(CorePingBuilder.PingType) {
             Telemetry.default.recordSessionStart()
+        }
+
+        if [ScheduleUpload.foregrounded, ScheduleUpload.both].contains(Telemetry.default.configuration.scheduleUpload) {
+            upload()
         }
     }
 }
