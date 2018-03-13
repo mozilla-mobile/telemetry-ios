@@ -15,6 +15,10 @@ class AppEvents {
         if Telemetry.default.hasPingType(CorePingBuilder.PingType) {
             Telemetry.default.recordSessionEnd()
         }
+
+        Telemetry.default.forEachPingType { pingType in
+            Telemetry.default.queue(pingType: pingType)
+        }
     }
 
     private func upload() {
@@ -24,10 +28,6 @@ class AppEvents {
     }
 
     @objc func appDidEnterBackground(notification: NSNotification) {
-        Telemetry.default.forEachPingType { pingType in
-            Telemetry.default.queue(pingType: pingType)
-        }
-
         if [ScheduleUpload.backgrounded, ScheduleUpload.both].contains(Telemetry.default.configuration.scheduleUpload) {
             upload()
         }
