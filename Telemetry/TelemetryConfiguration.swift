@@ -4,6 +4,12 @@
 
 import Foundation
 
+public enum ScheduleUpload {
+    case backgrounded
+    case foregrounded
+    case both
+}
+
 public class TelemetryConfiguration {
     public var appName: String
     public var appVersion: String
@@ -24,6 +30,7 @@ public class TelemetryConfiguration {
 
     public var isCollectionEnabled = true
     public var isUploadEnabled = true
+    public var scheduleUpload = ScheduleUpload.backgrounded
 
     public var userDefaultsSuiteName: String?
     private(set) public var measuredUserDefaults: [[String : Any?]]
