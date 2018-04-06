@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "MozillaTelemetry"
-  s.version      = "1.0.10"
+  s.version      = "1.0.12"
   s.summary      = "A generic library for sending telemetry pings from iOS applications to Mozilla's telemetry service."
   s.homepage     = "https://github.com/mozilla-mobile/telemetry-ios"
   s.license      = { :type => "Mozilla Public License", :file => "LICENSE" }

@@ -48,12 +48,13 @@ class TelemetryUtils {
         }
     }
     
-    static func truncate(string: String?, maxLength: Int) -> String? {
-        guard let string = string else {
-            return nil
+    static func truncate(string: String, maxLength: Int) -> String {
+        guard string.count < maxLength else {
+            print("Warning: String '\(string)' needed truncated for exceeding maximum length of \(maxLength)")
+            return String(string.characters.prefix(maxLength))
         }
-        
-        return String(string.characters.prefix(maxLength))
+
+        return string
     }
 
     static func daysBetween(start: Date, end: Date) -> Int {

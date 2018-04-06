@@ -5,14 +5,8 @@
 import Foundation
 
 public class TelemetryEvent {
-    public static let MaxLengthCategory = 30
-    public static let MaxLengthMethod = 20
-    public static let MaxLengthObject = 20
-    public static let MaxLengthValue = 80
-
+    public static let MaxLengthString = 50
     public static let MaxNumberOfExtras = 10
-    public static let MaxLengthExtraKey = 15
-    public static let MaxLengthExtraValue = 80
 
     public let category: String
     public let method: String
@@ -34,10 +28,15 @@ public class TelemetryEvent {
     }
 
     private init(category: String, method: String, object: String, value: String?, timestamp: UInt64) {
-        self.category = TelemetryUtils.truncate(string: category, maxLength: TelemetryEvent.MaxLengthCategory)!
-        self.method = TelemetryUtils.truncate(string: method, maxLength: TelemetryEvent.MaxLengthMethod)!
-        self.object = TelemetryUtils.truncate(string: object, maxLength: TelemetryEvent.MaxLengthObject)!
-        self.value = TelemetryUtils.truncate(string: value, maxLength: TelemetryEvent.MaxLengthValue)
+        self.category = TelemetryUtils.truncate(string: category, maxLength: TelemetryEvent.MaxLengthString)
+        self.method = TelemetryUtils.truncate(string: method, maxLength: TelemetryEvent.MaxLengthString)
+        self.object = TelemetryUtils.truncate(string: object, maxLength: TelemetryEvent.MaxLengthString)
+
+        if let value = value {
+            self.value = TelemetryUtils.truncate(string: value, maxLength: TelemetryEvent.MaxLengthString)
+        } else {
+            self.value = nil
+        }
 
         self.timestamp = timestamp
 
@@ -64,10 +63,9 @@ public class TelemetryEvent {
             return
         }
 
-        if let truncatedKey = TelemetryUtils.truncate(string: key, maxLength: TelemetryEvent.MaxLengthExtraKey) {
-            let truncatedValue = TelemetryUtils.truncate(string: TelemetryUtils.asString(value), maxLength: TelemetryEvent.MaxLengthExtraValue)
-            extras[truncatedKey] = truncatedValue
-        }
+        let truncatedKey = TelemetryUtils.truncate(string: key, maxLength: TelemetryEvent.MaxLengthString)
+        let truncatedValue = TelemetryUtils.truncate(string: TelemetryUtils.asString(value), maxLength: TelemetryEvent.MaxLengthString)
+        extras[truncatedKey] = truncatedValue
     }
 
     public func toArray() -> [Any?] {
