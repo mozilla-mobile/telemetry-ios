@@ -7,7 +7,7 @@ import UIKit
 
 public typealias BeforeSerializePingHandler = ([String: Any?]) -> [String: Any?]
 
-public class Telemetry {
+open class Telemetry {
     public let configuration = TelemetryConfiguration()
 
     let app = AppEvents()
@@ -33,7 +33,7 @@ public class Telemetry {
         self.scheduler = TelemetryScheduler(configuration: configuration, storage: storage)
     }
     
-    public func add<T: TelemetryPingBuilder>(pingBuilderType: T.Type) {
+    open func add<T: TelemetryPingBuilder>(pingBuilderType: T.Type) {
         let pingBuilder = pingBuilderType.init(configuration: configuration, storage: storage)
         pingBuilders[pingBuilderType.PingType] = pingBuilder
         backgroundTasks[pingBuilderType.PingType] = UIBackgroundTaskInvalid
@@ -129,7 +129,7 @@ public class Telemetry {
     }
 
     // Leave pingType nil to use the configuration.defaultEventPingBuilderType
-    public func recordEvent(_ event: TelemetryEvent, pingType: String? = nil) {
+    open func recordEvent(_ event: TelemetryEvent, pingType: String? = nil) {
         if !self.configuration.isCollectionEnabled {
             return
         }
@@ -148,19 +148,19 @@ public class Telemetry {
         }
     }
 
-    public func recordEvent(category: String, method: String, object: String, pingType: String? = nil) {
+    open func recordEvent(category: String, method: String, object: String, pingType: String? = nil) {
         recordEvent(TelemetryEvent(category: category, method: method, object: object), pingType: pingType)
     }
 
-    public func recordEvent(category: String, method: String, object: String, value: String?, pingType: String? = nil) {
+    open func recordEvent(category: String, method: String, object: String, value: String?, pingType: String? = nil) {
         recordEvent(TelemetryEvent(category: category, method: method, object: object, value: value), pingType: pingType)
     }
 
-    public func recordEvent(category: String, method: String, object: String, value: String?, extras: [String : Any?]?, pingType: String? = nil) {
+    open func recordEvent(category: String, method: String, object: String, value: String?, extras: [String : Any?]?, pingType: String? = nil) {
         recordEvent(TelemetryEvent(category: category, method: method, object: object, value: value, extras: extras), pingType: pingType)
     }
 
-    public func recordSearch(location: SearchesMeasurement.SearchLocation, searchEngine: String) {
+    open func recordSearch(location: SearchesMeasurement.SearchLocation, searchEngine: String) {
         if !configuration.isCollectionEnabled {
             return
         }
@@ -174,7 +174,7 @@ public class Telemetry {
     }
 
     // To modify the final key-value data dict before it gets stored as JSON, install a handler using this func.
-    public func beforeSerializePing(pingType: String, handler: @escaping BeforeSerializePingHandler) {
+    open func beforeSerializePing(pingType: String, handler: @escaping BeforeSerializePingHandler) {
         if beforeSerializePingHandlers[pingType] == nil {
             beforeSerializePingHandlers[pingType] = [BeforeSerializePingHandler]()
         }
