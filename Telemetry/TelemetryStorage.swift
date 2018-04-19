@@ -7,13 +7,13 @@ import Foundation
 class TelemetryStorageSequence : Sequence, IteratorProtocol {
     typealias Element = TelemetryPing
 
-    private let directoryEnumerator: FileManager.DirectoryEnumerator?
+    private let directoryEnumerator: TelemetryDirectoryEnumerator?
     private let configuration: TelemetryConfiguration
 
     private var currentPing: TelemetryPing?
     private var currentPingFile: URL?
 
-    init(directoryEnumerator: FileManager.DirectoryEnumerator?, configuration: TelemetryConfiguration) {
+    init(directoryEnumerator: TelemetryDirectoryEnumerator?, configuration: TelemetryConfiguration) {
         self.directoryEnumerator = directoryEnumerator
         self.configuration = configuration
     }
@@ -77,6 +77,39 @@ class TelemetryStorageSequence : Sequence, IteratorProtocol {
     }
 }
 
+class TelemetryDirectoryEnumerator: NSEnumerator {
+    private let contents: [URL]
+
+    private var index = 0
+
+    init(directory: URL) {
+        var contents: [URL]
+
+        do {
+            contents = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles).sorted(by: { (a, b) -> Bool in
+                return a.lastPathComponent < b.lastPathComponent
+            })
+        } catch {
+            print("TelemetryDirectoryEnumerator(directory: \(directory)): \(error.localizedDescription)")
+            contents = []
+        }
+
+        self.contents = contents
+
+        super.init()
+    }
+
+    override func nextObject() -> Any? {
+        if index < contents.count {
+            let result = contents[index]
+            index += 1
+            return result
+        }
+
+        return nil
+    }
+}
+
 public class TelemetryStorage {
     fileprivate let name: String
     fileprivate let configuration: TelemetryConfiguration
@@ -130,8 +163,8 @@ public class TelemetryStorage {
             print("TelemetryStorage.sequenceForPingType(): Could not get directory for pingType '\(pingType)'")
             return TelemetryStorageSequence(directoryEnumerator: nil, configuration: configuration)
         }
-        
-        let directoryEnumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil, options: .skipsHiddenFiles, errorHandler: nil)
+
+        let directoryEnumerator = TelemetryDirectoryEnumerator(directory: directory)
         return TelemetryStorageSequence(directoryEnumerator: directoryEnumerator, configuration: configuration)
     }
 
