@@ -63,6 +63,7 @@ class TelemetryScheduler {
     
     private func hasReachedDailyUploadLimit(forPingType pingType: String) -> Bool {
         if !isTimestampFromToday(timestamp: lastUploadTimestamp(forPingType: pingType)) {
+            storage.set(key: "\(pingType)-dailyUploadCount", value: 0)
             return false
         }
         
