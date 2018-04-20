@@ -37,7 +37,10 @@ extension UInt64 {
     }
 }
 
+
 class TelemetryUtils {
+    static let isUnitTesting = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil || (ProcessInfo.processInfo.environment["DYLD_INSERT_LIBRARIES"] ?? "").contains("libXCTTargetBootstrapInject.dylib")
+
     static func asString(_ object: Any?) -> String {
         if let string = object as? String {
             return string
@@ -57,7 +60,33 @@ class TelemetryUtils {
         return string
     }
 
-    static func daysBetween(start: Date, end: Date) -> Int {
-        return Calendar.current.dateComponents([.day], from: start, to: end).day ?? 0
+    static func daysOld(date: Date) -> Int {
+        let end = TelemetryUtils.dateFromTimestamp(TelemetryUtils.timestamp())
+        return Calendar.current.dateComponents([.day], from: date, to: end).day ?? 0
     }
 }
+
+// Allows for adjusting the time when testing
+extension TelemetryUtils {
+    static var mockableOffset: TimeInterval? {
+        didSet {
+            if !isUnitTesting {
+                // Testing only!!
+                mockableOffset = nil
+            }
+        }
+    }
+
+    static func timestamp() -> TimeInterval {
+        if let offset = mockableOffset {
+            return Date().timeIntervalSince1970 + offset
+        }
+
+        return Date().timeIntervalSince1970
+    }
+
+    static func dateFromTimestamp(_ timestampSince1970: TimeInterval) -> Date {
+        return Date(timeIntervalSince1970: timestampSince1970 + (mockableOffset ?? 0))
+    }
+}
+
