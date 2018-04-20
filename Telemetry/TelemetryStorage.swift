@@ -23,7 +23,7 @@ class TelemetryStorageSequence : Sequence, IteratorProtocol {
             return false
         }
 
-        let days = TelemetryUtils.daysBetween(start: time, end: Date())
+        let days = TelemetryUtils.daysOld(date: time)
         return days > configuration.maximumAgeOfPingInDays
     }
 
@@ -115,7 +115,7 @@ public class TelemetryStorage {
     fileprivate let configuration: TelemetryConfiguration
 
     // Prepend to all key usage to avoid UserDefaults name collisions
-    private let keyPrefix = "telemetry-key-prefix-"
+    static let keyPrefix = "telemetry-key-prefix-"
 
     init(name: String, configuration: TelemetryConfiguration) {
         self.name = name
@@ -123,11 +123,11 @@ public class TelemetryStorage {
     }
 
     func get(valueFor key: String) -> Any? {
-        return UserDefaults.standard.object(forKey: keyPrefix + key)
+        return UserDefaults.standard.object(forKey: TelemetryStorage.keyPrefix + key)
     }
 
     func set(key: String, value: Any) {
-        UserDefaults.standard.set(value, forKey: keyPrefix + key)
+        UserDefaults.standard.set(value, forKey: TelemetryStorage.keyPrefix + key)
     }
 
     func enqueue(ping: TelemetryPing) {
@@ -136,7 +136,7 @@ public class TelemetryStorage {
             return
         }
 
-        var url = directory.appendingPathComponent("-t-\(Date().timeIntervalSince1970).json")
+        var url = directory.appendingPathComponent("-t-\(TelemetryUtils.timestamp()).json")
 
         do {
             // TODO: Check `configuration.maximumNumberOfPingsPerType` and remove oldest ping if necessary.

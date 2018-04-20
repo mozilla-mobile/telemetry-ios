@@ -5,11 +5,12 @@
 import Foundation
 
 public class TelemetryError {
-    public static let ErrorDomain: String = "TelemetryErrorDomain"
+    public static let ErrorDomain = "TelemetryErrorDomain"
 
-    public static let SessionAlreadyStarted: Int = 101
-    public static let SessionNotStarted: Int = 102
-    public static let InvalidUploadURL: Int = 103
-    public static let CannotGenerateJSON: Int = 104
-    public static let UnknownUploadError: Int = 105
+    public static let SessionAlreadyStarted = 101
+    public static let SessionNotStarted = 102
+    public static let InvalidUploadURL = 103
+    public static let CannotGenerateJSON = 104
+    public static let UnknownUploadError = 105
+    public static let MaxDailyUploadReached = 106
 }

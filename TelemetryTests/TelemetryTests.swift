@@ -9,9 +9,15 @@ import OHHTTPStubs
 
 class TelemetryTests: XCTestCase {
     var expectation: XCTestExpectation? = nil
+    var errorNotificationExpectation: XCTestExpectation? = nil
 
     override func setUp() {
         super.setUp()
+
+        let prefKeys = UserDefaults.standard.dictionaryRepresentation().keys
+        prefKeys.filter { $0.hasPrefix(TelemetryStorage.keyPrefix) }.forEach {
+            UserDefaults.standard.removeObject(forKey: $0)
+        }
 
         let telemetryConfig = Telemetry.default.configuration
         telemetryConfig.appName = "AppInfo.displayName"
@@ -28,6 +34,17 @@ class TelemetryTests: XCTestCase {
 
             Telemetry.default.storage.deleteEventArrayFile(forPingType: t)
         }
+
+        NotificationCenter.default.removeObserver(self)
+        NotificationCenter.default.addObserver(self, selector: #selector(TelemetryTests.uploadError(notification:)), name: Telemetry.notificationReportError, object: nil)
+
+    }
+
+    @objc func uploadError(notification: NSNotification) {
+        guard let error = notification.userInfo?["error"] as? NSError else { return }
+        print("Upload error notification: \(error.localizedDescription)")
+        errorNotificationExpectation?.fulfill()
+        errorNotificationExpectation = nil
     }
 
     override func tearDown() {
@@ -76,8 +93,13 @@ class TelemetryTests: XCTestCase {
         }
     }
 
-    private func upload(pingType: String) {
-        expectation = expectation(description: "Completed upload")
+    private func upload(pingType: String, expectUploadError: Bool = false) {
+        if expectUploadError {
+            errorNotificationExpectation = expectation(description: "Expect upload error notification")
+        } else {
+            expectation = expectation(description: "Completed upload")
+        }
+
         Telemetry.default.scheduleUpload(pingType: pingType)
         waitForExpectations(timeout: 10.0) { error in
             if error != nil {
@@ -86,7 +108,7 @@ class TelemetryTests: XCTestCase {
         }
     }
 
-    private func storeOnDiskAndUpload(corePingFilesToWrite: Int) {
+    private func storeOnDiskAndUpload(corePingFilesToWrite: Int, expectUploadError: Bool = false) {
         let startSeq = Telemetry.default.storage.get(valueFor: "\(CorePingBuilder.PingType)-seq") as? Int ?? 0
 
         for _ in 0..<corePingFilesToWrite {
@@ -96,7 +118,7 @@ class TelemetryTests: XCTestCase {
         }
 
         waitForFilesOnDisk(count: corePingFilesToWrite)
-        upload(pingType: CorePingBuilder.PingType)
+        upload(pingType: CorePingBuilder.PingType, expectUploadError: expectUploadError)
 
         let endSeq = Telemetry.default.storage.get(valueFor: "\(CorePingBuilder.PingType)-seq") as! Int
         XCTAssert(endSeq - startSeq == corePingFilesToWrite)
@@ -104,7 +126,24 @@ class TelemetryTests: XCTestCase {
 
     private func waitForFilesOnDisk(count: Int, pingType: String = CorePingBuilder.PingType) {
         wait()
-        XCTAssert(countFilesOnDisk(forPingType: pingType) == count, "waitForFilesOnDisk matching")
+        XCTAssert(countFilesOnDisk(forPingType: pingType) >= count, "waitForFilesOnDisk \(countFilesOnDisk(forPingType: pingType)) >= \(count)")
+    }
+
+    private func countFilesOnDisk(forPingType pingType: String = CorePingBuilder.PingType) -> Int {
+        var result = 0
+        let seq = Telemetry.default.storage.sequence(forPingType: pingType)
+        while seq.next() != nil {
+            result += 1
+        }
+        return result
+    }
+
+    private func serverError(code: URLError.Code) {
+        setupHttpErrorStub(expectedFilesUploaded: 1, statusCode: code)
+        let filesOnDisk = 3
+        // Only one attempted upload, but all 3 files should remain on disk.
+        storeOnDiskAndUpload(corePingFilesToWrite: filesOnDisk)
+        waitForFilesOnDisk(count: filesOnDisk)
     }
 
     private func wait() {
@@ -141,23 +180,6 @@ class TelemetryTests: XCTestCase {
         serverError(code: URLError.Code.badServerResponse)
     }
 
-    private func countFilesOnDisk(forPingType pingType: String = CorePingBuilder.PingType) -> Int {
-        var result = 0
-        let seq = Telemetry.default.storage.sequence(forPingType: pingType)
-        while seq.next() != nil {
-            result += 1
-        }
-        return result
-    }
-
-    private func serverError(code: URLError.Code) {
-        setupHttpErrorStub(expectedFilesUploaded: 1, statusCode: code)
-        let filesOnDisk = 3
-        // Only one attempted upload, but all 3 files should remain on disk.
-        storeOnDiskAndUpload(corePingFilesToWrite: filesOnDisk)
-        waitForFilesOnDisk(count: filesOnDisk)
-    }
-
 
     func test4xxCode() {
         setupHttpResponseStub(expectedFilesUploaded: 3, statusCode: 400)
@@ -176,7 +198,31 @@ class TelemetryTests: XCTestCase {
         let fileDate = TelemetryStorage.extractTimestampFromName(pingFile: URL(string: "a/b/c/foo-t-\(lastWeek.timeIntervalSince1970).json")!)!
         XCTAssert(fileDate.timeIntervalSince1970 > 0)
         XCTAssert(fabs(fileDate.timeIntervalSince1970 - lastWeek.timeIntervalSince1970) < 0.1 /* epsilon */)
-        XCTAssert(TelemetryUtils.daysBetween(start: fileDate, end: Date()) == 7)
+        XCTAssert(TelemetryUtils.daysOld(date: fileDate) == 7)
+    }
+
+
+    func testDailyUploadLimit() {
+        let max = 5
+        Telemetry.default.configuration.maximumNumberOfPingUploadsPerDay = max
+        for _ in 0..<max {
+            setupHttpResponseStub(expectedFilesUploaded: 1, statusCode: 200)
+            storeOnDiskAndUpload(corePingFilesToWrite: 1)
+            waitForFilesOnDisk(count: 0)
+        }
+
+        setupHttpResponseStub(expectedFilesUploaded: 1, statusCode: 200)
+        storeOnDiskAndUpload(corePingFilesToWrite: 1, expectUploadError: true)
+        waitForFilesOnDisk(count: 1)
+
+        TelemetryUtils.mockableOffset = 86400 // 1 day of seconds
+
+        setupHttpResponseStub(expectedFilesUploaded: 1, statusCode: 200)
+        storeOnDiskAndUpload(corePingFilesToWrite: 1)
+        waitForFilesOnDisk(count: 0)
+
+        TelemetryUtils.mockableOffset = nil
+        Telemetry.default.configuration.maximumNumberOfPingUploadsPerDay = 100
     }
 }
 

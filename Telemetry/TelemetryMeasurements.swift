@@ -96,7 +96,7 @@ public class CreatedTimestampMeasurement: TelemetryMeasurement {
     }
 
     override func flush() -> Any? {
-        return UInt64.safeConvert(Date().timeIntervalSince1970 * 1000)
+        return UInt64.safeConvert(TelemetryUtils.timestamp() * 1000)
     }
 }
 
@@ -244,7 +244,7 @@ public class ProfileDateMeasurement: TelemetryMeasurement {
         }
 
         // Fallback to current date if profile cannot be found
-        let seconds = UInt64.safeConvert(Date().timeIntervalSince1970)
+        let seconds = UInt64.safeConvert(TelemetryUtils.timestamp())
         let days = seconds * oneSecondInMilliseconds / oneDayInMilliseconds
         
         return days

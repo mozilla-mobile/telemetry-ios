@@ -43,7 +43,7 @@ public class TelemetryPingBuilder {
                 data = handler(data)
             }
         }
-        return TelemetryPing(pingType: pingType, documentId: documentId, uploadPath: uploadPath, measurements: data, timestamp: Date().timeIntervalSince1970)
+        return TelemetryPing(pingType: pingType, documentId: documentId, uploadPath: uploadPath, measurements: data, timestamp: TelemetryUtils.timestamp())
     }
     
     func getUploadPath(withDocumentId documentId: String) -> String {
