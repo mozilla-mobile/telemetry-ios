@@ -78,11 +78,7 @@ extension TelemetryUtils {
     }
 
     static func timestamp() -> TimeInterval {
-        if let offset = mockableOffset {
-            return Date().timeIntervalSince1970 + offset
-        }
-
-        return Date().timeIntervalSince1970
+        return Date().timeIntervalSince1970 + (mockableOffset ?? 0)
     }
 
     static func dateFromTimestamp(_ timestampSince1970: TimeInterval) -> Date {
