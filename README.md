@@ -66,3 +66,5 @@ We encourage you to participate in this open source project. We love Pull Reques
     This Source Code Form is subject to the terms of the Mozilla Public
     License, v. 2.0. If a copy of the MPL was not distributed with this
     file, You can obtain one at http://mozilla.org/MPL/2.0/
+
+This is a test to trigger a PR on Bitrise.
