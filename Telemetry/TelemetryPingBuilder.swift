@@ -4,7 +4,7 @@
 
 import Foundation
 
-public class TelemetryPingBuilder {
+open class TelemetryPingBuilder {
     public class var PingType: String {
         return "unknown"
     }
@@ -133,7 +133,7 @@ public class CorePingBuilder: TelemetryPingBuilder {
     }
 }
 
-public class TelemetryEventPingBuilder: TelemetryPingBuilder {
+open class TelemetryEventPingBuilder: TelemetryPingBuilder {
     private let eventsMeasurement: EventsMeasurement
 
     var numberOfEvents: Int {
@@ -163,7 +163,7 @@ public class TelemetryEventPingBuilder: TelemetryPingBuilder {
     }
 }
 
-public class MobileEventPingBuilder: TelemetryEventPingBuilder {
+open class MobileEventPingBuilder: TelemetryEventPingBuilder {
     override public class var PingType: String {
         return "mobile-event"
     }
