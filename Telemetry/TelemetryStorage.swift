@@ -196,7 +196,7 @@ public class TelemetryStorage {
         assert(regex != nil)
         if let result = regex?.matches(in:str, range:NSMakeRange(0, str.characters.count)),
             let match = result.first, match.range.length > 0 {
-            let time = (str as NSString).substring(with: match.rangeAt(1))
+            let time = (str as NSString).substring(with: match.range(at: 1))
             if let time = Double(time) {
                 return Date(timeIntervalSince1970: time)
             }
