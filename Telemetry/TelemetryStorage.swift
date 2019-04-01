@@ -194,9 +194,9 @@ public class TelemetryStorage {
         let pat = "-t-([\\d.]+)\\.json"
         let regex = try? NSRegularExpression(pattern: pat, options: [])
         assert(regex != nil)
-        if let result = regex?.matches(in:str, range:NSMakeRange(0, str.characters.count)),
+        if let result = regex?.matches(in:str, range:NSMakeRange(0, str.count)),
             let match = result.first, match.range.length > 0 {
-            let time = (str as NSString).substring(with: match.rangeAt(1))
+            let time = (str as NSString).substring(with: match.range(at: 1))
             if let time = Double(time) {
                 return Date(timeIntervalSince1970: time)
             }
@@ -215,7 +215,7 @@ extension TelemetryStorage {
             return 0
         }
         // A single newline would indicate 2 records
-        return text.characters.filter { $0 == "\n" }.count + 1
+        return text.filter { $0 == "\n" }.count + 1
     }
 
     func eventArrayFile(forPingType pingType: String) -> URL? {
