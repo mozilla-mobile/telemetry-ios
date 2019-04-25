@@ -32,7 +32,7 @@ extension UInt64 {
         return UInt64(Swift.max(0.0, d))
     }
 
-    static func safeConvert<T: Integer>(_ val: T) -> UInt64 {
+    static func safeConvert<T: BinaryInteger>(_ val: T) -> UInt64 {
         return UInt64(Swift.max(0, val))
     }
 }
@@ -54,7 +54,7 @@ class TelemetryUtils {
     static func truncate(string: String, maxLength: Int) -> String {
         guard string.count < maxLength else {
             print("Warning: String '\(string)' needed truncated for exceeding maximum length of \(maxLength)")
-            return String(string.characters.prefix(maxLength))
+            return String(string.prefix(maxLength))
         }
 
         return string
