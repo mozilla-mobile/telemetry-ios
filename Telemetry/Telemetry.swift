@@ -36,7 +36,7 @@ open class Telemetry {
     open func add<T: TelemetryPingBuilder>(pingBuilderType: T.Type) {
         let pingBuilder = pingBuilderType.init(configuration: configuration, storage: storage)
         pingBuilders[pingBuilderType.PingType] = pingBuilder
-        backgroundTasks[pingBuilderType.PingType] = UIBackgroundTaskInvalid
+        backgroundTasks[pingBuilderType.PingType] = UIBackgroundTaskIdentifier.invalid
 
         // Assign a default event ping builder if not set
         if configuration.defaultEventPingBuilderType == nil, pingBuilder is TelemetryEventPingBuilder {
@@ -77,7 +77,7 @@ open class Telemetry {
     func scheduleUpload(pingType: String) {
         guard configuration.isUploadEnabled,
             let backgroundTask = backgroundTasks[pingType],
-            backgroundTask == UIBackgroundTaskInvalid else {
+            backgroundTask == UIBackgroundTaskIdentifier.invalid else {
             return
         }
 
@@ -88,7 +88,7 @@ open class Telemetry {
                 UIApplication.shared.endBackgroundTask(backgroundTask)
             }
 
-            self.backgroundTasks[pingType] = UIBackgroundTaskInvalid
+            self.backgroundTasks[pingType] = UIBackgroundTaskIdentifier.invalid
         }
 
         DispatchQueue.main.async {
@@ -97,7 +97,7 @@ open class Telemetry {
                     UIApplication.shared.endBackgroundTask(backgroundTask)
                 }
 
-                self.backgroundTasks[pingType] = UIBackgroundTaskInvalid
+                self.backgroundTasks[pingType] = UIBackgroundTaskIdentifier.invalid
             }
         }
     }
@@ -156,7 +156,7 @@ open class Telemetry {
         recordEvent(TelemetryEvent(category: category, method: method, object: object, value: value), pingType: pingType)
     }
 
-    open func recordEvent(category: String, method: String, object: String, value: String?, extras: [String : Any?]?, pingType: String? = nil) {
+    open func recordEvent(category: String, method: String, object: String, value: String?, extras: [String : Any]?, pingType: String? = nil) {
         recordEvent(TelemetryEvent(category: category, method: method, object: object, value: value, extras: extras), pingType: pingType)
     }
 

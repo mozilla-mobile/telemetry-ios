@@ -146,16 +146,20 @@ class TelemetryTests: XCTestCase {
         waitForFilesOnDisk(count: filesOnDisk)
     }
 
+    var count = 0
     private func wait() {
-        let wait = expectation(description: "process async events")
-        XCTWaiter().wait(for: [wait], timeout: 0.25)
-        wait.fulfill()
+        count += 1
+        let wait = expectation(description: "process async events \(count)")
+        DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
+            wait.fulfill()
+        }
+        waitForExpectations(timeout: 0.25, handler: nil)
     }
 
     func testAppEvents() {
         Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: "value", extras: ["extraKey": "extraValue"])
-        Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: "value", extras: ["extraKey": nil])
-        Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: nil, extras: ["extraKey": nil])
+        Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: "value", extras: ["extraKey": "value"])
+        Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: nil, extras: ["extraKey": "value"])
 
         wait()
         var count = Telemetry.default.storage.countArrayFileEvents(forPingType: FocusEventPingBuilder.PingType)
