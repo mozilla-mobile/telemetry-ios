@@ -42,12 +42,13 @@ class TelemetryUtils {
     static let isUnitTesting = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil || (ProcessInfo.processInfo.environment["DYLD_INSERT_LIBRARIES"] ?? "").contains("libXCTTargetBootstrapInject.dylib")
 
     static func asString(_ object: Any?) -> String {
+        guard let object = object else { return "" }
         if let string = object as? String {
             return string
         } else if let bool = object as? Bool {
             return bool ? "true" : "false"
         } else {
-            return object.debugDescription
+            return "\(object)"
         }
     }
     
