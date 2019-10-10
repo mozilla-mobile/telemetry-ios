@@ -1,14 +1,15 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+import UIKit
 
 class AppEvents {
     init() {
-        NotificationCenter.default.addObserver(self, selector: #selector(AppEvents.appWillResignActive(notification:)), name: NSNotification.Name.UIApplicationWillResignActive, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(AppEvents.appWillResignActive(notification:)), name: UIApplication.willResignActiveNotification, object: nil)
 
-        NotificationCenter.default.addObserver(self, selector: #selector(AppEvents.appDidEnterBackground(notification:)), name: NSNotification.Name.UIApplicationDidEnterBackground, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(AppEvents.appDidEnterBackground(notification:)), name: UIApplication.didEnterBackgroundNotification, object: nil)
 
-        NotificationCenter.default.addObserver(self, selector: #selector(AppEvents.appDidBecomeActive(notification:)), name: NSNotification.Name.UIApplicationDidBecomeActive, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(AppEvents.appDidBecomeActive(notification:)), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
 
     @objc func appWillResignActive(notification: NSNotification) {

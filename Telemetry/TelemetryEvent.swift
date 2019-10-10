@@ -16,7 +16,7 @@ public class TelemetryEvent {
 
     private var extras: [String : String]
 
-    public convenience init(category: String, method: String, object: String, value: String? = nil, extras: [String : Any?]? = nil) {
+    public convenience init(category: String, method: String, object: String, value: String? = nil, extras: [String : Any]? = nil) {
         let timestamp = UInt64.safeConvert(Date().timeIntervalSince(Telemetry.appLaunchTimestamp) * 1000)
         self.init(category: category, method: method, object: object, value: value, timestamp: timestamp)
 
@@ -57,7 +57,7 @@ public class TelemetryEvent {
         return result
     }
 
-    public func addExtra(key: String, value: Any?) {
+    public func addExtra(key: String, value: Any) {
         if extras.count >= TelemetryEvent.MaxNumberOfExtras {
             print("Exceeded maximum limit of \(TelemetryEvent.MaxNumberOfExtras) TelemetryEvent extras")
             return
