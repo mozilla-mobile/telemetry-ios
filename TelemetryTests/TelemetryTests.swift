@@ -159,7 +159,8 @@ class TelemetryTests: XCTestCase {
     func testAppEvents() {
         Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: "value", extras: ["extraKey": "extraValue"])
         Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: "value", extras: ["extraKey": "value"])
-        Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: nil, extras: ["extraKey": "value"])
+        Telemetry.default.recordEvent(category: "category", method: "method", object: "object", value: nil, extras: ["extraKey": 1])
+
 
         wait()
         var count = Telemetry.default.storage.countArrayFileEvents(forPingType: FocusEventPingBuilder.PingType)
