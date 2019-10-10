@@ -2,4 +2,4 @@
 # Having a Cartfile and pulling this project from another project using carthage, will 
 # cause any Cartfile here to be run, and there is currently a carthage bug
 # whereby pulling OHHTTPStubs reports a circular dependancy error (incorrectly).
-github "AliSoftware/OHHTTPStubs" "6.0.0"
+github "AliSoftware/OHHTTPStubs" "8.0.0"
