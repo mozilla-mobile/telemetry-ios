@@ -10,7 +10,7 @@ public class TelemetryDefaults {
     public static let BuildId = "unknown"
     public static let UpdateChannel = "unknown"
     public static let ServerEndpoint = "https://incoming.telemetry.mozilla.org"
-    public static let UserAgent = "Telemetry/1.1.0 (iOS)"
+    public static let UserAgent = "Telemetry/1.1.1 (iOS)"
     public static let DefaultSearchEngineProvider = "unknown"
     public static let SessionConfigurationBackgroundIdentifier = "MozTelemetry"
     public static let DataDirectory = FileManager.SearchPathDirectory.cachesDirectory

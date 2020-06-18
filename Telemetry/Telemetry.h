@@ -10,6 +10,13 @@ FOUNDATION_EXPORT double TelemetryVersionNumber;
 //! Project version string for Telemetry.
 FOUNDATION_EXPORT const unsigned char TelemetryVersionString[];
 
-// In this header, you should import all the public headers of your framework using statements like #import <Telemetry/PublicHeader.h>
-
+NS_INLINE NSException * _Nullable withObjCExceptionHandling(void(NS_NOESCAPE^_Nonnull tryBlock)(void)) {
+    @try {
+        tryBlock();
+    }
+    @catch (NSException *exception) {
+        return exception;
+    }
+    return nil;
+}
 

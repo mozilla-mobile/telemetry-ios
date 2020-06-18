@@ -281,7 +281,7 @@
 					D0E1781E1E773B7F00CD2264 = {
 						CreatedOnToolsVersion = 8.2.1;
 						DevelopmentTeam = LF9LZ7LM5W;
-						LastSwiftMigration = 0820;
+						LastSwiftMigration = 1150;
 						ProvisioningStyle = Automatic;
 					};
 					D0E178271E773B7F00CD2264 = {
@@ -598,6 +598,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -622,6 +623,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.mozilla.Telemetry;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};

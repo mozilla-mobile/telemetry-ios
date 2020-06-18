@@ -261,11 +261,20 @@ extension TelemetryStorage {
 
             let fileHandle = try FileHandle(forWritingTo: file)
             fileHandle.seekToEndOfFile()
-            if !isFirstRecord {
-                fileHandle.write(eventSeparator)
+
+            // NSFileHandle.write exceptions do not use Swift throw, requires obj-c exception handler (or the exception bubbles up and crashes the app)
+            let exception = withObjCExceptionHandling {
+                if !isFirstRecord {
+                    fileHandle.write(eventSeparator)
+                }
+                fileHandle.write(data)
             }
-            fileHandle.write(data)
             fileHandle.closeFile()
+
+            if exception != nil {
+                try? FileManager.default.removeItem(at: file)
+            }
+
             return true
         } catch {
             print("\(#function) \(error)")
