@@ -4,6 +4,7 @@
 
 import XCTest
 import OHHTTPStubs
+import OHHTTPStubsSwift
 
 @testable import Telemetry
 
@@ -64,7 +65,7 @@ class TelemetryTests: XCTestCase {
             }
 
             let err = NSError(domain: NSURLErrorDomain, code: statusCode.rawValue, userInfo: nil)
-            return OHHTTPStubsResponse(error: err)
+            return HTTPStubsResponse(error: err)
         }
     }
 
@@ -89,7 +90,7 @@ class TelemetryTests: XCTestCase {
                 }
             }
 
-            return OHHTTPStubsResponse(jsonObject: ["foo": "bar"], statusCode: statusCode, headers: ["Content-Type": "application/json"])
+            return HTTPStubsResponse(jsonObject: ["foo": "bar"], statusCode: statusCode, headers: ["Content-Type": "application/json"])
         }
     }
 

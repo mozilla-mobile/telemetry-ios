@@ -17,7 +17,7 @@ class TelemetryScheduler {
     }
     
     func scheduleUpload(pingType: String, completionHandler: @escaping () -> Void) {
-        var pingSequence = storage.sequence(forPingType: pingType)
+        let pingSequence = storage.sequence(forPingType: pingType)
 
         func uploadNextPing() {
             guard let ping = pingSequence.next() else {
