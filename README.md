@@ -1,3 +1,5 @@
+> 🚨 This project has been deprecated in favour of [Glean](https://github.com/mozilla/glean) - Mozilla's modern cross-platform telemetry library 🚨
+
 [![Build Status](https://travis-ci.org/mozilla-mobile/telemetry-ios.svg?branch=master)](https://travis-ci.org/mozilla-mobile/telemetry-ios)
 
 telemetry-ios
