@@ -244,36 +244,45 @@ extension TelemetryStorage {
     // To read this file: read to a string, wrap the string in '[ ]' to complete the JSON,
     // then pass to JSON parser.
     func append(event: TelemetryEvent, forPingType pingType: String) -> Bool {
+        print("MOOOOO")
         guard let data = event.toJSON(), let file = eventArrayFile(forPingType: pingType) else {
             return false
         }
 
         do {
-            let isFirstRecord: Bool
-
-            // Create the file if not there.
-            if !FileManager.default.fileExists(atPath: file.path) {
-                isFirstRecord = true
-                try "".write(to: file, atomically: true, encoding: String.Encoding.utf8)
-            } else {
-                isFirstRecord = false
+            let isFirstRecord = !FileManager.default.fileExists(atPath: file.path)
+            
+            if isFirstRecord {
+                try? data.write(to: file, options: .atomic)
+                return true
             }
 
             let fileHandle = try FileHandle(forWritingTo: file)
-            fileHandle.seekToEndOfFile()
 
-            // NSFileHandle.write exceptions do not use Swift throw, requires obj-c exception handler (or the exception bubbles up and crashes the app)
-            let exception = withObjCExceptionHandling {
-                if !isFirstRecord {
-                    fileHandle.write(eventSeparator)
-                }
-                fileHandle.write(data)
-            }
-            fileHandle.closeFile()
-
-            if exception != nil {
+            // We're falling back to lseek and write because fileHandle methods throw uncatchable
+            // exceptions below iOS 13. Previously we used an Objective-C wrapper to catch those,
+            // but since this project is now a Swift Package, it is not convenient anymore to
+            // include Objective-C.
+            
+            if lseek(fileHandle.fileDescriptor, 0, SEEK_END) == -1 {
+                fileHandle.closeFile()
                 try? FileManager.default.removeItem(at: file)
+                return false
             }
+            
+            if eventSeparator.withUnsafeBytes({ write(fileHandle.fileDescriptor, $0, eventSeparator.count) }) == -1 {
+                fileHandle.closeFile()
+                try? FileManager.default.removeItem(at: file)
+                return false
+            }
+
+            if data.withUnsafeBytes({ write(fileHandle.fileDescriptor, $0, data.count) }) == -1 {
+                fileHandle.closeFile()
+                try? FileManager.default.removeItem(at: file)
+                return false
+            }
+
+            fileHandle.closeFile() 
 
             return true
         } catch {
