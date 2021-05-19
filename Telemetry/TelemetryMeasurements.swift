@@ -406,7 +406,7 @@ public class UserDefaultsMeasurement: TelemetryMeasurement {
         
         let userDefaults = configuration.userDefaultsSuiteName != nil ? UserDefaults(suiteName: configuration.userDefaultsSuiteName) : UserDefaults()
         
-        for var measuredUserDefault in configuration.measuredUserDefaults {
+        for measuredUserDefault in configuration.measuredUserDefaults {
             if let key = measuredUserDefault["key"] as? String {
                 if let value = userDefaults?.object(forKey: key) {
                     settings[key] = TelemetryUtils.asString(value)
