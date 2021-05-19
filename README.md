@@ -1,8 +1,6 @@
 > 🚨 This project has been deprecated in favour of [Glean](https://github.com/mozilla/glean) - our modern cross-platform telemetry library
 > 🚨 The main branch of this project is now `main` instead of `master`
-> 🚨 The `main` branch of this project is now a _Swift Package_ and is not compatible anymore with _Carthage_
-
-[![Build Status](https://travis-ci.org/mozilla-mobile/telemetry-ios.svg?branch=master)](https://travis-ci.org/mozilla-mobile/telemetry-ios)
+> 🚨 The `main` branch of this project is now a _Swift Package_ and is not compatible anymore with _Carthage_ 🚨
 
 telemetry-ios
 =============
